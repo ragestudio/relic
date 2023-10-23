@@ -4,6 +4,8 @@ import os from "node:os"
 import ChildProcess from "node:child_process"
 import { pipeline as streamPipeline } from "node:stream/promises"
 
+import { extractFull } from "node-7z"
+
 import got from "got"
 
 function resolveDestBin(pre, post) {
@@ -23,8 +25,14 @@ function resolveDestBin(pre, post) {
 }
 
 async function main() {
-    const sevenzip_exec = path.resolve(global.RUNTIME_PATH, "7z-bin", process.platform === "win32" ? "7za.exe" : "7za")
-    const git_exec = path.resolve(global.RUNTIME_PATH, "git", process.platform === "win32" ? "git.exe" : "git")
+    const binariesPath = path.resolve(global.RUNTIME_PATH, "bin_lib")
+
+    if (!fs.existsSync(binariesPath)) {
+        fs.mkdirSync(binariesPath, { recursive: true })
+    }
+
+    const sevenzip_exec = path.resolve(binariesPath, "7z-bin", process.platform === "win32" ? "7za.exe" : "7za")
+    const git_exec = path.resolve(binariesPath, "git", process.platform === "win32" ? "git.exe" : "git")
 
     if (!fs.existsSync(sevenzip_exec)) {
         global.win.webContents.send("initializing_text", "Downloading 7z binaries...")
@@ -50,14 +58,18 @@ async function main() {
 
         console.log(`Downloading git binaries...`)
 
+        const tempPath = path.resolve(binariesPath, "git-bundle.7z")
+
         fs.mkdirSync(path.resolve(global.RUNTIME_PATH, "git"), { recursive: true })
 
         let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/git`, "git.7z")
 
         await streamPipeline(
             got.stream(url),
-            fs.createWriteStream(git_exec)
+            fs.createWriteStream(tempPath)
         )
+
+        await extractFull(tempPath, path.resolve(global.RUNTIME_PATH, "git"))
 
         if (os.platform() !== "win32") {
             ChildProcess.execSync("chmod +x " + git_exec)

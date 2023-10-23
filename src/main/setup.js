@@ -60,7 +60,7 @@ async function main() {
 
         fs.mkdirSync(path.resolve(binariesPath, "git"), { recursive: true })
 
-        let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/git`, "git.7z")
+        let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/git`, "git-bundle-2.4.0.7z")
 
         await streamPipeline(
             got.stream(url),

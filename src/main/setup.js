@@ -36,10 +36,9 @@ async function main() {
 
     if (!fs.existsSync(sevenzip_exec)) {
         global.win.webContents.send("initializing_text", "Downloading 7z binaries...")
-
         console.log(`Downloading 7z binaries...`)
 
-        fs.mkdirSync(path.resolve(global.RUNTIME_PATH, "7z-bin"), { recursive: true })
+        fs.mkdirSync(path.resolve(binariesPath, "7z-bin"), { recursive: true })
 
         let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/7zip-bin`, process.platform === "win32" ? "7za.exe" : "7za")
 
@@ -55,12 +54,11 @@ async function main() {
 
     if (!fs.existsSync(git_exec) && process.platform === "win32") {
         global.win.webContents.send("initializing_text", "Downloading GIT binaries...")
-
         console.log(`Downloading git binaries...`)
 
         const tempPath = path.resolve(binariesPath, "git-bundle.7z")
 
-        fs.mkdirSync(path.resolve(global.RUNTIME_PATH, "git"), { recursive: true })
+        fs.mkdirSync(path.resolve(binariesPath, "git"), { recursive: true })
 
         let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/git`, "git.7z")
 
@@ -69,7 +67,9 @@ async function main() {
             fs.createWriteStream(tempPath)
         )
 
-        await extractFull(tempPath, path.resolve(global.RUNTIME_PATH, "git"))
+        await extractFull(tempPath, path.resolve(binariesPath, "git"), {
+            $bin: sevenzip_exec
+        })
 
         if (os.platform() !== "win32") {
             ChildProcess.execSync("chmod +x " + git_exec)

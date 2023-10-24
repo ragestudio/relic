@@ -28,7 +28,8 @@
     "open": "8.4.2",
     "react-icons": "^4.11.0",
     "react-spinners": "^0.13.8",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "unzipper": "^0.10.14"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

@@ -232,7 +232,7 @@ export default class PkgManager {
                     fs.mkdirSync(_path, { recursive: true })
 
                     await new Promise((resolve, reject) => {
-                        const process = ChildProcess.exec(`git clone --recurse-submodules --remote-submodules ${step.url} ${_path}`, {
+                        const process = ChildProcess.exec(`${global.GIT_PATH ?? "git"} clone --recurse-submodules --remote-submodules ${step.url} ${_path}`, {
                             shell: true,
                         })
 
@@ -422,8 +422,6 @@ export default class PkgManager {
                 return false
             }
 
-            console.log(manifest)
-            
             const packPath = manifest.install_path
 
             if (manifest.remote_url) {
@@ -445,8 +443,6 @@ export default class PkgManager {
 
                 delete manifest.init
             }
-
-                   console.log(manifest)
 
             if (typeof manifest.update === "function") {
                 sendToRenderer(`installation:status`, {
@@ -475,7 +471,7 @@ export default class PkgManager {
                     })
 
                     await new Promise((resolve, reject) => {
-                        const process = ChildProcess.exec(`git pull`, {
+                        const process = ChildProcess.exec(`${global.GIT_PATH ?? "git"} pull`, {
                             cwd: _path,
                             shell: true,
                         })

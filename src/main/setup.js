@@ -55,8 +55,8 @@ async function main() {
     }
 
     if (!fs.existsSync(git_exec)) {
-        if (!process.platform === "win32") {
-            git_exec = null
+        if (process.platform !== "win32") {
+            return git_exec = null
         }
 
         const tempPath = path.resolve(binariesPath, "git-bundle.zip")

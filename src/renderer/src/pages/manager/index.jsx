@@ -86,7 +86,7 @@ const InstallationItem = (props) => {
                 </h2>
                 <p>
                     {
-                        isLoading ? manifest.status : manifest.version ?? "N/A"
+                        isLoading ? manifest.status : `v${manifest.version}` ?? "N/A"
                     }
                 </p>
             </div>

@@ -55,27 +55,39 @@ body {
 
     align-items: center;
 
-    background-color: darken(@var-background-color-primary, 5%);
-
-    gap: 30px;
-}
-
-.app_footer {
-    display: inline-flex;
-    flex-direction: row;
-
-    align-items: center;
+    background-color: darken(@var-background-color-primary, 10%);
 
     gap: 30px;
 
-    background-color: darken(@var-background-color-primary, 5%);
+    padding: 0 20px;
 
-    border: 1px solid @var-border-color;
+    .branding {
+        display: inline-flex;
+        flex-direction: row;
 
-    padding: 10px 40px;
+        align-items: center;
 
-    margin: 10px;
-    border-radius: 12px;
+        gap: 10px;
+
+        svg {
+            color: var(--primary-color);
+            height: 40px;
+            width: 40px;
+        }
+    }
+
+    .menu {
+        display: flex;
+        flex-direction: row;    
+
+        width: 100%;
+
+        align-items: center;
+
+        justify-content: flex-end;
+
+        gap: 15px;
+    }
 }
 
 .app_content {

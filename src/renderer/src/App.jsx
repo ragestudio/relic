@@ -9,7 +9,9 @@ import getRootCssVar from "utils/getRootCssVar"
 
 import InstallationsManager from "pages/manager"
 
-import { MdFolder } from "react-icons/md"
+import { MdFolder, MdSettings } from "react-icons/md"
+
+import Icon from "../assets/icon.jsx"
 
 globalThis.getRootCssVar = getRootCssVar
 
@@ -92,30 +94,35 @@ class App extends React.Component {
       <GlobalStateContext.Provider value={this.state}>
         <antd.Layout className="app_layout">
           <antd.Layout.Header className="app_header">
-            <h1>RageStudio Bundler</h1>
+            <div className="branding">
+              <Icon />
+            </div>
+
+            {
+              !loading && <div className="menu">
+                <antd.Button
+                  size="small"
+                  icon={<MdSettings />}
+                />
+
+                <antd.Button
+                  size="small"
+                  icon={<MdFolder />}
+                  onClick={() => ipc.send("open-runtime-path")}
+                />
+
+                {
+                  pkg && <antd.Tag>
+                    v{pkg.version}
+                  </antd.Tag>
+                }
+              </div>
+            }
           </antd.Layout.Header>
 
           <antd.Layout.Content className="app_content">
             <PageRender />
           </antd.Layout.Content>
-
-          {
-            !loading && <antd.Layout.Footer className="app_footer">
-              <span>
-                {pkg.name}
-
-                <antd.Tag>
-                  v{pkg.version}
-                </antd.Tag>
-              </span>
-
-              <antd.Button
-                size="small"
-                icon={<MdFolder />}
-                onClick={() => ipc.send("open-runtime-path")}
-              />
-            </antd.Layout.Footer>
-          }
         </antd.Layout>
       </GlobalStateContext.Provider>
     </antd.ConfigProvider>

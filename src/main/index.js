@@ -102,7 +102,9 @@ class ElectronApp {
     this.createWindow()
 
     app.on("activate", function () {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      if (BrowserWindow.getAllWindows().length === 0) {
+        this.createWindow()
+      }
     })
 
     app.on("window-all-closed", () => {

@@ -594,4 +594,67 @@ export default class PkgManager {
             console.error(error)
         }
     }
+
+    async execute(manifest_id) {
+        console.log(`Executing ${manifest_id}...`)
+
+        sendToRenderer("installation:status", {
+            status: "starting",
+            id: manifest_id,
+            statusText: `Executing ${manifest_id}...`,
+        })
+
+        const db = await this.readDb()
+
+        let manifest = db.installations.find((i) => i.id === manifest_id)
+
+        if (!manifest) {
+            sendToRenderer("runtime:error", "Manifest not found")
+            return false
+        }
+
+        const packPath = path.resolve(INSTALLERS_PATH, manifest.id)
+        
+        if (manifest.remote_url) {
+            manifest = await readManifest(manifest.remote_url, { just_read: true })
+        }
+
+        if (typeof manifest.init === "function") {
+            const init_result = await manifest.init({
+                pack_dir: packPath,
+                tmp_dir: TMP_PATH
+            })
+
+            manifest = {
+                ...manifest,
+                ...init_result,
+            }
+
+            delete manifest.init
+        }
+
+        if (typeof manifest.execute !== "function") {
+            sendToRenderer("installation:status", {
+                status: "execution_failed",
+                ...manifest,
+            })
+
+            return false
+        }
+
+        await manifest.execute({
+            manifest,
+            pack_dir: packPath,
+            tmp_dir: TMP_PATH
+        })
+
+        sendToRenderer("installation:status", {
+            status: "installed",
+            ...manifest,
+        })
+
+        console.log(`Successfully executed ${manifest_id}!`)
+
+        return true
+    }
 }

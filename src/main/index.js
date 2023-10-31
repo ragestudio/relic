@@ -29,7 +29,7 @@ class ElectronApp {
       this.pkgManager.update(manifest_id)
     },
     "bundle:exec": (event, manifest_id) => {
-      this.pkgManager.exec(manifest_id)
+      this.pkgManager.execute(manifest_id)
     },
     "bundle:install": async (event, manifest) => {
       this.pkgManager.install(manifest)

@@ -6,8 +6,6 @@ import { pipeline as streamPipeline } from "node:stream/promises"
 
 import unzipper from "unzipper"
 
-import { extractFull } from "node-7z"
-
 import got from "got"
 
 function resolveDestBin(pre, post) {

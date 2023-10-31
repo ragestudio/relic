@@ -93,6 +93,14 @@ const InstallationItem = (props) => {
 
             <div className="installation_item_actions">
                 {
+                    isInstalled && manifest.executable && <antd.Button
+                        type="primary"
+                        icon={<MdPlayArrow />}
+                        onClick={onClickPlay}
+                    />
+                }
+
+                {
                     isFailed && <antd.Button
                         type="primary"
                     >
@@ -105,14 +113,6 @@ const InstallationItem = (props) => {
                         type="primary"
                         icon={<MdUpdate />}
                         onClick={onClickUpdate}
-                    />
-                }
-
-                {
-                    isInstalled && manifest.exec_path && <antd.Button
-                        type="primary"
-                        icon={<MdPlayArrow />}
-                        onClick={onClickPlay}
                     />
                 }
 

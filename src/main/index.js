@@ -2,7 +2,7 @@ import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
-import { autoUpdater } from "electron-differential-updater"
+const { autoUpdater } = require("electron-differential-updater")
 
 import open from "open"
 

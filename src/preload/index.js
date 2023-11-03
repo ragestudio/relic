@@ -21,9 +21,11 @@ if (process.contextIsolated) {
           ipcRenderer.removeListener(channel, listener)
         }
       },
+
     )
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld("electron", electronAPI)
+
+    contextBridge.exposeInMainWorld("api", api)
   } catch (error) {
     console.error(error)
   }

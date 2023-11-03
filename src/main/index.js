@@ -2,6 +2,7 @@ import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
+import { autoUpdater } from "electron-updater"
 
 import open from "open"
 
@@ -51,6 +52,11 @@ class ElectronApp {
     },
   }
 
+  sendToRender(event, ...args) {
+    console.log(`[sendToRender][${event}]`, ...args)
+    this.win.webContents.send(event, ...args)
+  }
+
   createWindow() {
     this.win = global.win = new BrowserWindow({
       width: 450,
@@ -92,6 +98,41 @@ class ElectronApp {
 
     await app.whenReady()
 
+    autoUpdater.on("update-available", (ev, info) => {
+      console.log(info)
+
+      this.sendToRender("new:message", {
+        message: `New update available, downloading...`,
+        type: "loading",
+      })
+    })
+
+    autoUpdater.on("error", (ev, err) => {
+      console.error(err)
+
+      this.sendToRender("new:message", {
+        message: "Failed to auto update...",
+        type: "error",
+      })
+    })
+
+    autoUpdater.on("update-downloaded", (ev, info) => {
+      console.log(info)
+
+      this.sendToRender("new:message", {
+        message: `Update downloaded, restarting...`,
+        type: "loading",
+      })
+    })
+
+    autoUpdater.on("update-downloaded", (ev, info) => {
+      setTimeout(() => {
+        autoUpdater.quitAndInstall()
+      }, 3000)
+    })
+
+    autoUpdater.checkForUpdates()
+
     // Set app user model id for windows
     electronApp.setAppUserModelId("com.electron")
 
@@ -101,7 +142,7 @@ class ElectronApp {
 
     this.createWindow()
 
-    app.on("activate", function () {
+    app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         this.createWindow()
       }

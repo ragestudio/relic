@@ -36,6 +36,9 @@ const PageRender = () => {
   return <InstallationsManager />
 }
 
+globalThis.notification = antd.notification
+globalThis.message = antd.message
+
 class App extends React.Component {
   state = {
     loading: true,
@@ -54,6 +57,18 @@ class App extends React.Component {
       this.setState({
         initializing_text: data,
       })
+    },
+    "new:notification": (event, data) => {
+      antd.notification[data.type || "info"]({
+        message: data.message,
+        description: data.description,
+        loading: data.loading,
+        duration: data.duration,
+        icon: data.icon,
+      })
+    },
+    "new:message": (event, data) => {
+      antd.message[data.type || "info"]( data.message)
     }
   }
 

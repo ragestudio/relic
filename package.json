@@ -1,7 +1,7 @@
 {
   "name": "rs-bundler",
-  "version": "0.3.0",
-  "description": "An Electron application with React",
+  "version": "0.4.0",
+  "description": "RageStudio Bundler Utility GUI",
   "main": "./out/main/index.js",
   "author": "RageStudio",
   "scripts": {
@@ -18,6 +18,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
+    "@ragestudio/hermes": "^0.1.1",
     "antd": "^5.10.2",
     "classnames": "^2.3.2",
     "electron-updater": "^6.1.1",

@@ -1,11 +1,13 @@
 import React from "react"
 import * as antd from "antd"
+import ManifestInfo from "components/ManifestInfo"
 
 export const Context = React.createContext([])
 
 export class WithContext extends React.Component {
     state = {
-        installations: []
+        installations: [],
+        pendingInstallation: false,
     }
 
     ipcEvents = {
@@ -48,7 +50,10 @@ export class WithContext extends React.Component {
             }
         },
         "installation:error": (event, data) => {
-            antd.message.error(`Failed to install ${data.id}`)
+            antd.notification.error({
+                message: `Failed to install ${data.id}`,
+                description: data.statusText
+            })
 
             this.ipcEvents["installation:status"](event, data)
         },
@@ -94,13 +99,35 @@ export class WithContext extends React.Component {
         }
     }
 
+    install = async (manifest) => {
+        this.setState({
+            pendingInstallation: manifest,
+        })
+    }
+
     render() {
         return <Context.Provider
             value={{
-                installations: this.state.installations
+                installations: this.state.installations,
+                install: this.install
             }}
         >
-            {this.props.children}
+            <React.Fragment>
+                <antd.Modal
+                    open={this.state.pendingInstallation}
+                    onCancel={() => this.setState({ pendingInstallation: null })}
+                    footer={null}
+                >
+                    {
+                        this.state.pendingInstallation && <ManifestInfo
+                            manifest={this.state.pendingInstallation}
+                            close={() => this.setState({ pendingInstallation: null })}
+                        />
+                    }
+                </antd.Modal>
+
+                {this.props.children}
+            </React.Fragment>
         </Context.Provider>
     }
 }

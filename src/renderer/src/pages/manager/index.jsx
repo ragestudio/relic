@@ -4,42 +4,36 @@ import classnames from "classnames"
 
 import BarLoader from "react-spinners/BarLoader"
 
-import { MdAdd, MdUploadFile, MdFolder, MdDelete, MdPlayArrow, MdUpdate } from "react-icons/md"
+import { MdAdd, MdFolder, MdDelete, MdPlayArrow, MdUpdate } from "react-icons/md"
 
 import { Context as InstallationsContext, WithContext } from "contexts/installations"
 
 import "./index.less"
 
 const NewInstallation = (props) => {
+    const { install } = React.useContext(InstallationsContext)
     const [manifestUrl, setManifestUrl] = React.useState("")
 
-    const handleInstall = (manifest) => {
-        ipc.exec("bundle:install", manifest)
-            .then(() => {
-                props.close()
-            })
-            .catch((error) => {
-                antd.message.error(error)
-            })
+    function handleClickInstall() {
+        install(manifestUrl)
+        props.close()
     }
 
     return <div className="new_installation_prompt">
         <antd.Input
             placeholder="Manifest URL"
             value={manifestUrl}
-            onChange={(e) => setManifestUrl(e.target.value)}
-            onPressEnter={() => handleInstall(manifestUrl)}
+            onChange={(e) => {
+                setManifestUrl(e.target.value)
+            }}
+            onPressEnter={handleClickInstall}
         />
 
-        <h2>
-            or
-        </h2>
-
         <antd.Button
-            icon={<MdUploadFile />}
-            disabled
+            type="primary"
+            onClick={handleClickInstall}
         >
-            Local file
+            Install
         </antd.Button>
     </div>
 }
@@ -192,6 +186,7 @@ class InstallationsManager extends React.Component {
                 title="Add new installation"
                 placement="bottom"
                 open={this.state.drawerVisible}
+                height={"200px"}
                 onClose={() => this.toggleDrawer(false)}
             >
                 <NewInstallation

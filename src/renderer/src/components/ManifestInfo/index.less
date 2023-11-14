@@ -1,0 +1,70 @@
+.manifest_info {
+    display: flex;
+    flex-direction: column;
+
+    gap: 20px;
+
+    .manifest_info-header {
+        display: flex;
+        flex-direction: row;
+
+        align-items: center;
+
+        gap: 20px;
+
+        .manifest_info-icon {
+            width: 80px;
+            height: 80px;
+
+            border-radius: 12px;
+
+            background-color: var(--background-color-secondary);
+
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                height: 100%;
+
+                object-fit: contain;
+            }
+        }
+
+        h1 {
+            font-size: 1.6rem;
+        }
+    }
+
+    .manifest_info-extra_info {
+        display: flex;
+        flex-direction: column;
+
+        gap: 7px;
+
+        background-color: var(--background-color-secondary);
+
+        padding: 10px;
+
+        border-radius: 12px;
+
+        .manifest_info-extra_info-item {
+            display: inline-flex;
+            flex-direction: row;
+
+            align-items: center;
+
+            gap: 7px;
+
+            font-family: "DM Mono", monospace;
+
+            svg {
+                font-size: 1.1rem;
+            }
+        }
+    }
+
+    .manifest_info-actions {
+        display: flex;
+        flex-direction: row;
+    }
+}

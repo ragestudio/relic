@@ -197,7 +197,11 @@ export default class PkgManager {
             delete manifest.init
         }
 
-        return manifest
+        return {
+            ...manifest,
+            packPath: packPath,
+            osString: osString,
+        }
     }
 
     async install(manifest) {
@@ -219,25 +223,25 @@ export default class PkgManager {
             manifest.status = "installing"
 
             console.log(`Starting to install ${manifest.pack_name}...`)
-            console.log(`Installing at >`, packPath)
+            console.log(`Installing at >`, manifest.packPath)
 
             sendToRenderer("new:installation", manifest)
 
-            fs.mkdirSync(packPath, { recursive: true })
+            fs.mkdirSync(manifest.packPath, { recursive: true })
 
             await this.appendInstallation(manifest)
 
             if (typeof manifest.on_install === "function") {
                 await manifest.on_install({
                     manifest: manifest,
-                    pack_dir: packPath,
+                    pack_dir: manifest.packPath,
                     tmp_dir: TMP_PATH,
                 })
             }
 
             if (typeof manifest.git_clones_steps !== "undefined" && Array.isArray(manifest.git_clones_steps)) {
                 for await (const step of manifest.git_clones_steps) {
-                    const _path = path.resolve(packPath, step.path)
+                    const _path = path.resolve(manifest.packPath, step.path)
 
                     console.log(`Cloning ${step.url}...`)
 
@@ -261,7 +265,7 @@ export default class PkgManager {
 
             if (typeof manifest.http_downloads !== "undefined" && Array.isArray(manifest.http_downloads)) {
                 for await (const step of manifest.http_downloads) {
-                    let _path = path.resolve(packPath, step.path ?? ".")
+                    let _path = path.resolve(manifest.packPath, step.path ?? ".")
 
                     console.log(`Downloading ${step.url}...`)
 
@@ -343,13 +347,13 @@ export default class PkgManager {
 
                 await manifest.after_install({
                     manifest,
-                    pack_dir: packPath,
+                    pack_dir: manifest.packPath,
                     tmp_dir: TMP_PATH
                 })
             }
 
             manifest.status = "installed"
-            manifest.install_path = packPath
+            manifest.install_path = manifest.packPath
             manifest.installed_at = new Date()
             manifest.last_update = null
 
@@ -371,7 +375,7 @@ export default class PkgManager {
 
             console.error(error)
 
-            fs.rmdirSync(packPath, { recursive: true })
+            fs.rmdirSync(manifest.packPath, { recursive: true })
         }
     }
 
@@ -618,8 +622,6 @@ export default class PkgManager {
             return false
         }
 
-        const packPath = path.resolve(INSTALLERS_PATH, manifest.id)
-
         if (manifest.remote_url) {
             manifest = await readManifest(manifest.remote_url, { just_read: true })
         }
@@ -637,7 +639,7 @@ export default class PkgManager {
 
         await manifest.execute({
             manifest,
-            pack_dir: packPath,
+            pack_dir: manifest.packPath,
             tmp_dir: TMP_PATH
         })
 

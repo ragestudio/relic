@@ -12,6 +12,7 @@ import pkg from "../../package.json"
 import setup from "./setup"
 
 import PkgManager from "./pkgManager"
+import { readManifest } from "./pkgManager"
 
 class ElectronApp {
   constructor() {
@@ -25,6 +26,9 @@ class ElectronApp {
     },
     "get:installations": async () => {
       return await this.pkgManager.getInstallations()
+    },
+    "bundle:read": async (event, manifest_url) => {
+      return JSON.stringify(await readManifest(manifest_url))
     },
     "bundle:update": (event, manifest_id) => {
       this.pkgManager.update(manifest_id)
@@ -98,6 +102,27 @@ class ElectronApp {
 
     await app.whenReady()
 
+    // Set app user model id for windows
+    electronApp.setAppUserModelId("com.electron")
+
+    app.on("browser-window-created", (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
+
+    this.createWindow()
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        this.createWindow()
+      }
+    })
+
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") {
+        app.quit()
+      }
+    })
+
     autoUpdater.on("update-available", (ev, info) => {
       console.log(info)
 
@@ -132,27 +157,6 @@ class ElectronApp {
     })
 
     autoUpdater.checkForUpdates()
-
-    // Set app user model id for windows
-    electronApp.setAppUserModelId("com.electron")
-
-    app.on("browser-window-created", (_, window) => {
-      optimizer.watchWindowShortcuts(window)
-    })
-
-    this.createWindow()
-
-    app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        this.createWindow()
-      }
-    })
-
-    app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") {
-        app.quit()
-      }
-    })
   }
 }
 

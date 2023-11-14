@@ -47,7 +47,7 @@ function sendToRenderer(event, data) {
     global.win.webContents.send(event, serializeIpc(data))
 }
 
-async function fetchAndCreateModule(manifest) {
+export async function fetchAndCreateModule(manifest) {
     console.log(`Fetching ${manifest}...`)
 
     try {
@@ -63,7 +63,7 @@ async function fetchAndCreateModule(manifest) {
     }
 }
 
-async function readManifest(manifest, { just_read = false } = {}) {
+export async function readManifest(manifest, { just_read = false } = {}) {
     // check if manifest is a directory or a url
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi
 
@@ -177,25 +177,16 @@ export default class PkgManager {
         }
     }
 
-    async install(manifest) {
-        let pendingTasks = []
-
-        manifest = await readManifest(manifest).catch((error) => {
-            sendToRenderer("runtime:error", "Cannot fetch this manifest")
-
-            return false
-        })
-
-        if (!manifest) {
-            return false
-        }
-
+    async initManifest(manifest = {}) {
         const packPath = path.resolve(INSTALLERS_PATH, manifest.id)
+
+        const osString = `${os.platform()}-${os.arch()}`
 
         if (typeof manifest.init === "function") {
             const init_result = await manifest.init({
                 pack_dir: packPath,
-                tmp_dir: TMP_PATH
+                tmp_dir: TMP_PATH,
+                os_string: osString,
             })
 
             manifest = {
@@ -206,18 +197,44 @@ export default class PkgManager {
             delete manifest.init
         }
 
-        manifest.status = "installing"
+        return manifest
+    }
 
-        console.log(`Starting to install ${manifest.pack_name}...`)
-        console.log(`Installing at >`, packPath)
-
-        sendToRenderer("new:installation", manifest)
-
-        fs.mkdirSync(packPath, { recursive: true })
-
-        await this.appendInstallation(manifest)
-
+    async install(manifest) {
         try {
+            let pendingTasks = []
+
+            manifest = await readManifest(manifest).catch((error) => {
+                sendToRenderer("runtime:error", "Cannot fetch this manifest")
+
+                return false
+            })
+
+            if (!manifest) {
+                return false
+            }
+
+            manifest = await this.initManifest(manifest)
+
+            manifest.status = "installing"
+
+            console.log(`Starting to install ${manifest.pack_name}...`)
+            console.log(`Installing at >`, packPath)
+
+            sendToRenderer("new:installation", manifest)
+
+            fs.mkdirSync(packPath, { recursive: true })
+
+            await this.appendInstallation(manifest)
+
+            if (typeof manifest.on_install === "function") {
+                await manifest.on_install({
+                    manifest: manifest,
+                    pack_dir: packPath,
+                    tmp_dir: TMP_PATH,
+                })
+            }
+
             if (typeof manifest.git_clones_steps !== "undefined" && Array.isArray(manifest.git_clones_steps)) {
                 for await (const step of manifest.git_clones_steps) {
                     const _path = path.resolve(packPath, step.path)
@@ -430,19 +447,7 @@ export default class PkgManager {
 
             manifest.status = "updating"
 
-            if (typeof manifest.init === "function") {
-                const init_result = await manifest.init({
-                    pack_dir: packPath,
-                    tmp_dir: TMP_PATH
-                })
-
-                manifest = {
-                    ...manifest,
-                    ...init_result,
-                }
-
-                delete manifest.init
-            }
+            manifest = await this.initManifest(manifest)
 
             if (typeof manifest.update === "function") {
                 sendToRenderer(`installation:status`, {
@@ -614,24 +619,12 @@ export default class PkgManager {
         }
 
         const packPath = path.resolve(INSTALLERS_PATH, manifest.id)
-        
+
         if (manifest.remote_url) {
             manifest = await readManifest(manifest.remote_url, { just_read: true })
         }
 
-        if (typeof manifest.init === "function") {
-            const init_result = await manifest.init({
-                pack_dir: packPath,
-                tmp_dir: TMP_PATH
-            })
-
-            manifest = {
-                ...manifest,
-                ...init_result,
-            }
-
-            delete manifest.init
-        }
+        manifest = await this.initManifest(manifest)
 
         if (typeof manifest.execute !== "function") {
             sendToRenderer("installation:status", {

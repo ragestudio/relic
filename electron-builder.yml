@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.ragestudio.bundler
 productName: rs-bundler
 directories:
   buildResources: build
@@ -12,6 +12,7 @@ asarUnpack:
   - resources/**
 win:
   executableName: rs-bundler
+  icon: build/icon.ico
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

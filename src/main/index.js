@@ -3,7 +3,7 @@ import lodash from "lodash"
 global.sendToRenderer = (event, data) => {
   function serializeIpc(data) {
     const copy = lodash.cloneDeep(data)
-  
+
     // remove fns
     if (!Array.isArray(copy)) {
       Object.keys(copy).forEach((key) => {
@@ -12,7 +12,7 @@ global.sendToRenderer = (event, data) => {
         }
       })
     }
-  
+
     return copy
   }
 
@@ -27,7 +27,6 @@ const { autoUpdater } = require("electron-differential-updater")
 
 import open from "open"
 
-import icon from "../../resources/icon.png?asset"
 import pkg from "../../package.json"
 
 import setup from "./setup"
@@ -87,8 +86,9 @@ class ElectronApp {
       width: 450,
       height: 670,
       show: false,
+      resizable: false,
       autoHideMenuBar: true,
-      ...(process.platform === "linux" ? { icon } : {}),
+      icon: "../../resources/icon.png",
       webPreferences: {
         preload: path.join(__dirname, "../preload/index.js"),
         sandbox: false

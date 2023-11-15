@@ -1,6 +1,6 @@
-import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import react from '@vitejs/plugin-react'
+import { resolve } from "path"
+import { defineConfig, externalizeDepsPlugin } from "electron-vite"
+import react from "@vitejs/plugin-react"
 
 export default defineConfig({
   main: {
@@ -12,14 +12,15 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        "style": resolve('src/renderer/src/style'),
-        "components": resolve('src/renderer/src/components'),
-        "utils": resolve('src/renderer/src/utils'),
-        "contexts": resolve('src/renderer/src/contexts'),
-        "pages": resolve('src/renderer/src/pages'),
-        "hooks": resolve('src/renderer/src/hooks'),
-        "services": resolve('src/renderer/src/services'),
-        '@renderer': resolve('src/renderer/src')
+        "style": resolve("src/renderer/src/style"),
+        "components": resolve("src/renderer/src/components"),
+        "utils": resolve("src/renderer/src/utils"),
+        "contexts": resolve("src/renderer/src/contexts"),
+        "pages": resolve("src/renderer/src/pages"),
+        "layout": resolve("src/renderer/src/layout"),
+        "hooks": resolve("src/renderer/src/hooks"),
+        "services": resolve("src/renderer/src/services"),
+        "@renderer": resolve("src/renderer/src")
       }
     },
     plugins: [react()],

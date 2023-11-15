@@ -37,7 +37,7 @@ const ManifestInfo = (props) => {
         } else {
             setLoading(false)
         }
-    }, [])
+    }, [props.manifest])
 
     if (error) {
         return <antd.Result status="error" title={error.message} />

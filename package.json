@@ -25,6 +25,7 @@
     "electron-differential-updater": "^4.3.2",
     "electron-updater": "^6.1.1",
     "got": "11.8.3",
+    "human-format": "^1.2.0",
     "less": "^4.2.0",
     "lodash": "^4.17.21",
     "node-7z": "^3.0.0",

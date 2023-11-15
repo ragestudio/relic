@@ -1,3 +1,24 @@
+import lodash from "lodash"
+
+global.sendToRenderer = (event, data) => {
+  function serializeIpc(data) {
+    const copy = lodash.cloneDeep(data)
+  
+    // remove fns
+    if (!Array.isArray(copy)) {
+      Object.keys(copy).forEach((key) => {
+        if (typeof copy[key] === "function") {
+          delete copy[key]
+        }
+      })
+    }
+  
+    return copy
+  }
+
+  global.win.webContents.send(event, serializeIpc(data))
+}
+
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
@@ -11,8 +32,8 @@ import pkg from "../../package.json"
 
 import setup from "./setup"
 
-import PkgManager from "./pkgManager"
-import { readManifest } from "./pkgManager"
+import PkgManager from "./pkg_mng"
+import { readManifest } from "./utils/readManifest"
 
 class ElectronApp {
   constructor() {

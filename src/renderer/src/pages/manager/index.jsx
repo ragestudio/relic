@@ -39,7 +39,7 @@ const NewInstallation = (props) => {
 }
 
 const InstallationItem = (props) => {
-    const { manifest } = props
+    const [manifest, setManifest] = React.useState(props.manifest)
 
     const isLoading = manifest.status === "installing" || manifest.status === "uninstalling" || manifest.status === "updating"
     const isInstalled = manifest.status === "installed"
@@ -61,6 +61,33 @@ const InstallationItem = (props) => {
         ipc.exec("bundle:uninstall", manifest.id)
     }
 
+    function handleUpdate(event, data) {
+        setManifest({
+            ...manifest,
+            ...data,
+        })
+    }
+
+    function renderStatusLine(manifest) {
+        if (isLoading) {
+            return manifest.status
+        }
+
+        return `v${manifest.version}` ?? "N/A"
+    }
+
+    React.useEffect(() => {
+        ipc.on(`installation:${manifest.id}:status`, handleUpdate)
+
+        return () => {
+            ipc.off(`installation:${manifest.id}:status`, handleUpdate)
+        }
+    }, [])
+
+    React.useEffect(() => {
+        setManifest(props.manifest)
+    }, [props.manifest])
+
     return <div
         className={classnames(
             "installation_item_wrapper",
@@ -80,7 +107,7 @@ const InstallationItem = (props) => {
                 </h2>
                 <p>
                     {
-                        isLoading ? manifest.status : `v${manifest.version}` ?? "N/A"
+                        renderStatusLine(manifest)
                     }
                 </p>
             </div>
@@ -138,6 +165,7 @@ const InstallationItem = (props) => {
             {
                 isLoading && <BarLoader color={getRootCssVar("--primary-color")} className="app_loader" />
             }
+
             <p>{manifest.statusText ?? "Unknown status"}</p>
         </div>
     </div>

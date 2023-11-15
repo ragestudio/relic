@@ -386,7 +386,10 @@ export default class PkgManager {
         }
 
         if (manifest.remote_url) {
-            manifest = await readManifest(manifest.remote_url, { just_read: true })
+            manifest = {
+                ...manifest,
+                ...await readManifest(manifest.remote_url, { just_read: true }),
+            }
         }
 
         manifest = await initManifest(manifest)

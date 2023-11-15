@@ -135,7 +135,7 @@ class ElectronApp {
 
       const explicitAction = urlValue.split("%3E")
 
-      if (explicitAction) {
+      if (explicitAction[1]) {
         const [action, value] = explicitAction
 
         switch (action) {

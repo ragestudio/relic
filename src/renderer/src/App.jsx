@@ -44,7 +44,7 @@ class App extends React.Component {
     loading: true,
     pkg: null,
     initializing: false,
-    updateAvailable: true,
+    updateAvailable: false,
   }
 
   ipcEvents = {

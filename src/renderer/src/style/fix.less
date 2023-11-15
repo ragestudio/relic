@@ -1,0 +1,181 @@
+.ant-select-dropdown {
+    .ant-select-item-option:not(.ant-select-item-option-disabled) {
+        background-color: var(--background-color-primary) !important;
+        color: var(--text-color) !important;
+    }
+
+    .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+        background-color: var(--background-color-secondary) !important;
+        color: var(--text-color) !important;
+    }
+}
+
+.ant-dropdown-menu {
+    .ant-dropdown-menu-item-divider {
+        background-color: var(--background-color-primary) !important;
+    }
+
+    .ant-dropdown-menu-item-disabled {
+        opacity: 0.4;
+
+        svg {
+            color: var(--text-color);
+        }
+    }
+}
+
+.ant-modal-content {
+    background-color: var(--background-color-primary) !important;
+
+    p,
+    span,
+    svg {
+        color: var(--text-color) !important;
+    }
+
+    .ant-modal-confirm-content {
+        color: var(--text-color) !important;
+    }
+
+    .ant-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    
+        svg {
+            margin: 0 !important;
+        }
+    
+        gap: 10px;
+    
+        span {
+            margin: 0;
+            line-height: 1rem;
+        }
+    }
+    
+    .ant-btn-primary:not(.ant-btn-dangerous) {
+        svg {
+            color: var(--background-color-primary) !important;
+        }
+    
+        span {
+            color: var(--background-color-primary) !important;
+            margin: 0;
+        }
+    
+        background-color: var(--primary-color);
+    
+        &:hover {
+            background-color: var(--primary-color);
+        }
+    }
+    
+    .ant-btn-primary:not(:disabled):not(.ant-btn-disabled) {
+        &:hover {
+            background-color: var(--primary-color);
+            filter: brightness(130%);
+        }
+    }
+    
+    .ant-btn-primary[disabled] {
+        opacity: 0.5 !important;
+    
+        svg {
+            color: unset !important;
+        }
+    
+        span {
+            color: unset !important;
+            margin: 0;
+        }
+    }
+    
+    .ant-btn[disabled] {
+        opacity: 0.5 !important;
+    }
+    
+    .ant-btn-default {
+        &:not(.ant-btn-dangerous) {
+            border-color: var(--background-color-secondary) !important;
+    
+            &:hover {
+                border-color: var(--background-color-primary) !important;
+            }
+    
+            &:active {
+                border-color: var(--background-color-primary) !important;
+            }
+    
+            &:focus {
+                border-color: var(--background-color-primary) !important;
+            }
+        }
+    
+        color: var(--text-color);
+        background: var(--background-color-primary);
+    
+        &:hover {
+            color: var(--text-color);
+            background: var(--background-color-secondary);
+        }
+    
+        &:active {
+            color: var(--text-color);
+            background: var(--background-color-secondary);
+        }
+    
+        &:focus {
+            color: var(--text-color);
+            background: var(--background-color-secondary);
+        }
+    }
+    
+    .ant-btn-dangerous {
+        span {
+            color: var(--ant-error-color);
+        }
+    }
+    
+    .ant-btn[disabled],
+    .ant-btn[disabled]:hover,
+    .ant-btn[disabled]:focus,
+    .ant-btn[disabled]:active {
+        background-color: var(--background-color-accent);
+    }
+}
+
+.ant-notification-notice {
+    background-color: var(--background-color-primary) !important;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span {
+        color: var(--text-color) !important;
+    }
+
+    .ant-notification-notice-message,
+    .ant-notification-notice-description {
+        color: var(--text-color) !important;
+    }
+}
+
+.ant-message-notice-content {
+    background-color: var(--background-color-primary) !important;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span {
+        color: var(--text-color) !important;
+    }
+}

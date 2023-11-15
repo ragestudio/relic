@@ -131,15 +131,27 @@ class ElectronApp {
     const urlStarter = `${protocolRegistryNamespace}://`
 
     if (url.startsWith(urlStarter)) {
-      const [action, value] = url.split(urlStarter)[1].split("%3E")
+      const urlValue = url.split(urlStarter)[1]
 
-      switch (action) {
-        case "install": {
-          return this.sendToRender("installation:invoked", value)
+      const explicitAction = urlValue.split("%3E")
+
+      if (explicitAction) {
+        const [action, value] = explicitAction
+
+        switch (action) {
+          case "install": {
+            return this.sendToRender("installation:invoked", value)
+          }
+
+          default: {
+            return this.sendToRender("new:message", {
+              message: "Unrecognized URL action",
+            })
+          }
         }
-
-        default:
-          break;
+      } else {
+        // by default if no action is specified, assume is a install action
+        return this.sendToRender("installation:invoked", urlValue)
       }
     }
   }
@@ -206,12 +218,12 @@ class ElectronApp {
     })
 
     if (isDev) {
-      if (app.isDefaultProtocolClient("rsbundle")) {
-        app.removeAsDefaultProtocolClient("rsbundle")
+      if (app.isDefaultProtocolClient(protocolRegistryNamespace)) {
+        app.removeAsDefaultProtocolClient(protocolRegistryNamespace)
       }
 
       ProtocolRegistry.register({
-        protocol: "rsbundle",
+        protocol: protocolRegistryNamespace,
         command: `"${process.execPath}" "${path.resolve(
           process.argv[1]
         )}" $_URL_`,
@@ -220,8 +232,8 @@ class ElectronApp {
         terminal: false,
       })
     } else {
-      if (!app.isDefaultProtocolClient("rsbundle")) {
-        app.setAsDefaultProtocolClient("rsbundle")
+      if (!app.isDefaultProtocolClient(protocolRegistryNamespace)) {
+        app.setAsDefaultProtocolClient(protocolRegistryNamespace)
       }
     }
 

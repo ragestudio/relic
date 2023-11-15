@@ -402,7 +402,7 @@ export default class PkgManager {
 
         await manifest.execute({
             manifest,
-            pack_dir: manifest.packPath,
+            pack_dir: manifest.install_path,
             tmp_dir: TMP_PATH
         })
 

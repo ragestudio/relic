@@ -41,102 +41,102 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-    
+
         svg {
             margin: 0 !important;
         }
-    
+
         gap: 10px;
-    
+
         span {
             margin: 0;
             line-height: 1rem;
         }
     }
-    
+
     .ant-btn-primary:not(.ant-btn-dangerous) {
         svg {
             color: var(--background-color-primary) !important;
         }
-    
+
         span {
             color: var(--background-color-primary) !important;
             margin: 0;
         }
-    
+
         background-color: var(--primary-color);
-    
+
         &:hover {
             background-color: var(--primary-color);
         }
     }
-    
+
     .ant-btn-primary:not(:disabled):not(.ant-btn-disabled) {
         &:hover {
             background-color: var(--primary-color);
             filter: brightness(130%);
         }
     }
-    
+
     .ant-btn-primary[disabled] {
         opacity: 0.5 !important;
-    
+
         svg {
             color: unset !important;
         }
-    
+
         span {
             color: unset !important;
             margin: 0;
         }
     }
-    
+
     .ant-btn[disabled] {
         opacity: 0.5 !important;
     }
-    
+
     .ant-btn-default {
         &:not(.ant-btn-dangerous) {
             border-color: var(--background-color-secondary) !important;
-    
+
             &:hover {
                 border-color: var(--background-color-primary) !important;
             }
-    
+
             &:active {
                 border-color: var(--background-color-primary) !important;
             }
-    
+
             &:focus {
                 border-color: var(--background-color-primary) !important;
             }
         }
-    
+
         color: var(--text-color);
         background: var(--background-color-primary);
-    
+
         &:hover {
             color: var(--text-color);
             background: var(--background-color-secondary);
         }
-    
+
         &:active {
             color: var(--text-color);
             background: var(--background-color-secondary);
         }
-    
+
         &:focus {
             color: var(--text-color);
             background: var(--background-color-secondary);
         }
     }
-    
+
     .ant-btn-dangerous {
         span {
             color: var(--ant-error-color);
         }
     }
-    
+
     .ant-btn[disabled],
     .ant-btn[disabled]:hover,
     .ant-btn[disabled]:focus,

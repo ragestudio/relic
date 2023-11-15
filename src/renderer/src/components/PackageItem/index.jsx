@@ -133,37 +133,37 @@ const PackageItem = (props) => {
                 </p>
             </div>
 
-                <div className="installation_item_actions">
-                    {
-                        isFailed && <antd.Button
-                            type="primary"
-                        >
-                            Retry
-                        </antd.Button>
-                    }
+            <div className="installation_item_actions">
+                {
+                    isFailed && <antd.Button
+                        type="primary"
+                    >
+                        Retry
+                    </antd.Button>
+                }
 
-                    {
-                        isInstalled && manifest.executable && <antd.Dropdown.Button
-                            menu={MenuProps}
-                            onClick={onClickPlay}
-                            type="primary"
-                            trigger={["click"]}
-                        >
-                            <MdPlayArrow />
-                        </antd.Dropdown.Button>
-                    }
+                {
+                    isInstalled && manifest.executable && <antd.Dropdown.Button
+                        menu={MenuProps}
+                        onClick={onClickPlay}
+                        type="primary"
+                        trigger={["click"]}
+                    >
+                        <MdPlayArrow />
+                    </antd.Dropdown.Button>
+                }
 
-                    {
-                        isInstalled && !manifest.executable && <antd.Dropdown
-                            menu={MenuProps}
-                        >
-                            <antd.Button
-                                icon={<MdOutlineMoreVert />}
-                                type="primary"
-                            />
-                        </antd.Dropdown>
-                    }
-                </div>
+                {
+                    isInstalled && !manifest.executable && <antd.Dropdown
+                        menu={MenuProps}
+                    >
+                        <antd.Button
+                            icon={<MdOutlineMoreVert />}
+                            type="primary"
+                        />
+                    </antd.Dropdown>
+                }
+            </div>
         </div>
 
         <div

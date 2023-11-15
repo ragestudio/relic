@@ -86,5 +86,14 @@ export default async (manifest, step) => {
         })
 
         await extractFile(_path, step.extract)
+
+        if (step.delete_after_extract) {
+            sendToRenderer(`installation:status`, {
+                ...manifest,
+                statusText: `Deleting temporal files...`,
+            })
+
+            await fs.promises.rm(_path, { recursive: true })
+        }
     }
 }

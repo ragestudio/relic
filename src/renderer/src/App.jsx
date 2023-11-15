@@ -9,7 +9,7 @@ import getRootCssVar from "utils/getRootCssVar"
 
 import InstallationsManager from "pages/manager"
 
-import { MdFolder, MdSettings } from "react-icons/md"
+import { MdFolder, MdSettings, MdDownload } from "react-icons/md"
 
 import Icon from "../assets/icon.jsx"
 
@@ -44,6 +44,7 @@ class App extends React.Component {
     loading: true,
     pkg: null,
     initializing: false,
+    updateAvailable: true,
   }
 
   ipcEvents = {
@@ -68,8 +69,35 @@ class App extends React.Component {
       })
     },
     "new:message": (event, data) => {
-      antd.message[data.type || "info"]( data.message)
+      antd.message[data.type || "info"](data.message)
+    },
+    "update-available": (event, data) => {
+      this.setState({
+        updateAvailable: true,
+      })
+
+      console.log(data)
+
+      antd.Modal.confirm({
+        title: "Update Available",
+        content: <>
+          <p>
+            A new version of the application is available.
+          </p>
+        </>,
+        okText: "Update",
+        cancelText: "Later",
+        onOk: () => {
+          this.applyUpdate()
+        }
+      })
     }
+  }
+
+  applyUpdate = () => {
+    antd.message.loading("Updating, please wait...")
+
+    ipc.exec("updater:apply")
   }
 
   componentDidMount = async () => {
@@ -115,6 +143,16 @@ class App extends React.Component {
 
             {
               !loading && <div className="menu">
+                {
+                  this.state.updateAvailable && <antd.Button
+                    size="small"
+                    icon={<MdDownload />}
+                    onClick={this.applyUpdate}
+                  >
+                    Update now
+                  </antd.Button>
+                }
+
                 <antd.Button
                   size="small"
                   icon={<MdSettings />}

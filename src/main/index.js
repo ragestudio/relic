@@ -19,11 +19,12 @@ global.sendToRenderer = (event, data) => {
   global.win.webContents.send(event, serializeIpc(data))
 }
 
+const { autoUpdater } = require("electron-differential-updater")
+
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
-const { autoUpdater } = require("electron-differential-updater")
 
 import open from "open"
 
@@ -67,6 +68,14 @@ class ElectronApp {
     },
     "check:setup": async () => {
       return await setup()
+    },
+    "updater:check": () => {
+      autoUpdater.checkForUpdates()
+    },
+    "updater:apply": () => {
+      setTimeout(() => {
+        autoUpdater.quitAndInstall()
+      }, 3000)
     }
   }
 
@@ -130,6 +139,20 @@ class ElectronApp {
       optimizer.watchWindowShortcuts(window)
     })
 
+    autoUpdater.on("update-available", (ev, info) => {
+      console.log(info)
+    })
+
+    autoUpdater.on("error", (ev, err) => {
+      console.error(err)
+    })
+
+    autoUpdater.on("update-downloaded", (ev, info) => {
+      console.log(info)
+
+      this.sendToRender("update-available", info)
+    })
+
     this.createWindow()
 
     app.on("activate", () => {
@@ -142,39 +165,6 @@ class ElectronApp {
       if (process.platform !== "darwin") {
         app.quit()
       }
-    })
-
-    autoUpdater.on("update-available", (ev, info) => {
-      console.log(info)
-
-      this.sendToRender("new:message", {
-        message: `New update available, downloading...`,
-        type: "loading",
-      })
-    })
-
-    autoUpdater.on("error", (ev, err) => {
-      console.error(err)
-
-      this.sendToRender("new:message", {
-        message: "Failed to auto update...",
-        type: "error",
-      })
-    })
-
-    autoUpdater.on("update-downloaded", (ev, info) => {
-      console.log(info)
-
-      this.sendToRender("new:message", {
-        message: `Update downloaded, restarting...`,
-        type: "loading",
-      })
-    })
-
-    autoUpdater.on("update-downloaded", (ev, info) => {
-      setTimeout(() => {
-        autoUpdater.quitAndInstall()
-      }, 3000)
     })
 
     autoUpdater.checkForUpdates()

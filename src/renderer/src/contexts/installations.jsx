@@ -1,5 +1,6 @@
 import React from "react"
 import * as antd from "antd"
+
 import ManifestInfo from "components/ManifestInfo"
 
 export const Context = React.createContext([])
@@ -100,9 +101,7 @@ export class WithContext extends React.Component {
     }
 
     install = async (manifest) => {
-        this.setState({
-            pendingInstallation: manifest,
-        })
+        return await app.invokeInstall(manifest)
     }
 
     render() {
@@ -112,22 +111,7 @@ export class WithContext extends React.Component {
                 install: this.install
             }}
         >
-            <React.Fragment>
-                <antd.Modal
-                    open={this.state.pendingInstallation}
-                    onCancel={() => this.setState({ pendingInstallation: null })}
-                    footer={null}
-                >
-                    {
-                        this.state.pendingInstallation && <ManifestInfo
-                            manifest={this.state.pendingInstallation}
-                            close={() => this.setState({ pendingInstallation: null })}
-                        />
-                    }
-                </antd.Modal>
-
-                {this.props.children}
-            </React.Fragment>
+          {this.props.children}
         </Context.Provider>
     }
 }

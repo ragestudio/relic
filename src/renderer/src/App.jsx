@@ -1,43 +1,39 @@
 import React from "react"
 import * as antd from "antd"
 
-import BarLoader from "react-spinners/BarLoader"
-
 import GlobalStateContext from "contexts/global"
 
 import getRootCssVar from "utils/getRootCssVar"
 
-import InstallationsManager from "pages/manager"
+import ManifestInfo from "components/ManifestInfo"
 
-import { MdFolder, MdSettings, MdDownload } from "react-icons/md"
+import AppHeader from "layout/components/Header"
+import AppModalDialog from "layout/components/ModalDialog"
 
-import Icon from "../assets/icon.jsx"
+import { PageRender } from "./router.jsx"
 
 globalThis.getRootCssVar = getRootCssVar
-
-const PageRender = () => {
-  const globalState = React.useContext(GlobalStateContext)
-
-  if (globalState.initializing_text && globalState.loading) {
-    return <div className="app_setup">
-      <BarLoader
-        className="app_loader"
-        color={getRootCssVar("--primary-color")}
-      />
-
-      <h1>Setting up...</h1>
-
-      <code>
-        <pre>{globalState.initializing_text}</pre>
-      </code>
-    </div>
-  }
-
-  return <InstallationsManager />
-}
-
 globalThis.notification = antd.notification
 globalThis.message = antd.message
+
+// create a global app context
+window.app = {
+  applyUpdate: () => {
+    antd.message.loading("Updating, please wait...")
+
+    ipc.exec("updater:apply")
+  },
+  invokeInstall: (manifest) => {
+    console.log(`installation invoked >`, manifest)
+
+    app.modal.open(ManifestInfo, {
+      manifest: manifest,
+      close: () => {
+        app.modal.close()
+      }
+    })
+  }
+}
 
 class App extends React.Component {
   state = {
@@ -58,6 +54,9 @@ class App extends React.Component {
       this.setState({
         initializing_text: data,
       })
+    },
+    "installation:invoked": (event, manifest) => {
+      app.invokeInstall(manifest)
     },
     "new:notification": (event, data) => {
       antd.notification[data.type || "info"]({
@@ -88,16 +87,10 @@ class App extends React.Component {
         okText: "Update",
         cancelText: "Later",
         onOk: () => {
-          this.applyUpdate()
+          app.applyUpdate()
         }
       })
     }
-  }
-
-  applyUpdate = () => {
-    antd.message.loading("Updating, please wait...")
-
-    ipc.exec("updater:apply")
   }
 
   componentDidMount = async () => {
@@ -122,8 +115,6 @@ class App extends React.Component {
   }
 
   render() {
-    const { loading, pkg } = this.state
-
     return <antd.ConfigProvider
       theme={{
         token: {
@@ -135,43 +126,10 @@ class App extends React.Component {
       }}
     >
       <GlobalStateContext.Provider value={this.state}>
+        <AppModalDialog />
+
         <antd.Layout className="app_layout">
-          <antd.Layout.Header className="app_header">
-            <div className="branding">
-              <Icon />
-            </div>
-
-            {
-              !loading && <div className="menu">
-                {
-                  this.state.updateAvailable && <antd.Button
-                    size="small"
-                    icon={<MdDownload />}
-                    onClick={this.applyUpdate}
-                  >
-                    Update now
-                  </antd.Button>
-                }
-
-                <antd.Button
-                  size="small"
-                  icon={<MdSettings />}
-                />
-
-                <antd.Button
-                  size="small"
-                  icon={<MdFolder />}
-                  onClick={() => ipc.send("open-runtime-path")}
-                />
-
-                {
-                  pkg && <antd.Tag>
-                    v{pkg.version}
-                  </antd.Tag>
-                }
-              </div>
-            }
-          </antd.Layout.Header>
+          <AppHeader />
 
           <antd.Layout.Content className="app_content">
             <PageRender />

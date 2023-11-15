@@ -20,11 +20,13 @@ global.sendToRenderer = (event, data) => {
 }
 
 const { autoUpdater } = require("electron-differential-updater")
+const ProtocolRegistry = require("protocol-registry")
 
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
+import isDev from "electron-is-dev"
 
 import open from "open"
 
@@ -34,6 +36,8 @@ import setup from "./setup"
 
 import PkgManager from "./pkg_mng"
 import { readManifest } from "./utils/readManifest"
+
+const protocolRegistryNamespace = "rsbundle"
 
 class ElectronApp {
   constructor() {
@@ -121,7 +125,49 @@ class ElectronApp {
     }
   }
 
+  handleURLProtocol(url) {
+    console.log(url)
+
+    const urlStarter = `${protocolRegistryNamespace}://`
+
+    if (url.startsWith(urlStarter)) {
+      const [action, value] = url.split(urlStarter)[1].split("%3E")
+
+      switch (action) {
+        case "install": {
+          return this.sendToRender("installation:invoked", value)
+        }
+
+        default:
+          break;
+      }
+    }
+  }
+
   async initialize() {
+    const gotTheLock = app.requestSingleInstanceLock()
+
+    if (!gotTheLock) {
+      app.quit()
+    } else {
+      app.on("second-instance", (event, commandLine, workingDirectory) => {
+        event.preventDefault()
+
+        // Someone tried to run a second instance, we should focus our window.
+        if (this.win) {
+          if (this.win.isMinimized()) {
+            this.win.restore()
+          }
+
+          this.win.focus()
+        }
+
+        const url = commandLine.pop()
+
+        this.handleURLProtocol(url)
+      })
+    }
+
     for (const key in this.handlers) {
       ipcMain.handle(key, this.handlers[key])
     }
@@ -134,6 +180,12 @@ class ElectronApp {
 
     // Set app user model id for windows
     electronApp.setAppUserModelId("com.electron")
+
+    app.on("open-url", (event, url) => {
+      event.preventDefault()
+
+      this.handleURLProtocol(url)
+    })
 
     app.on("browser-window-created", (_, window) => {
       optimizer.watchWindowShortcuts(window)
@@ -152,6 +204,26 @@ class ElectronApp {
 
       this.sendToRender("update-available", info)
     })
+
+    if (isDev) {
+      if (app.isDefaultProtocolClient("rsbundle")) {
+        app.removeAsDefaultProtocolClient("rsbundle")
+      }
+
+      ProtocolRegistry.register({
+        protocol: "rsbundle",
+        command: `"${process.execPath}" "${path.resolve(
+          process.argv[1]
+        )}" $_URL_`,
+        override: true,
+        script: true,
+        terminal: false,
+      })
+    } else {
+      if (!app.isDefaultProtocolClient("rsbundle")) {
+        app.setAsDefaultProtocolClient("rsbundle")
+      }
+    }
 
     this.createWindow()
 

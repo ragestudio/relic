@@ -30,11 +30,21 @@ export default async (manifest, step) => {
 
     fs.mkdirSync(path.resolve(_path, ".."), { recursive: true })
 
-    if (step.progress) {
+    if (step.simple) {
+        await streamPipeline(
+            got.stream(step.url),
+            fs.createWriteStream(_path)
+        )
+    } else {
         const remoteStream = got.stream(step.url)
         const localStream = fs.createWriteStream(_path)
 
-        let progress = null
+        let progress = {
+            transferred: 0,
+            total: 0,
+            speed: 0,
+        }
+
         let lastTransferred = 0
 
         sendToRenderer(`installation:status`, {
@@ -49,14 +59,14 @@ export default async (manifest, step) => {
         })
 
         const progressInterval = setInterval(() => {
-            progress.speed = (progress.transferred - lastTransferred) / 1
+            progress.speed = ((progress.transferred ?? 0) - lastTransferred) / 1
 
-            lastTransferred = progress.transferred
+            lastTransferred = progress.transferred ?? 0
 
             sendToRenderer(`installation:${manifest.id}:status`, {
                 ...manifest,
                 progress: progress,
-                statusText: `Downloaded ${convertSize(progress.transferred)} / ${convertSize(progress.total)} | ${convertSize(progress.speed)}/s`,
+                statusText: `Downloaded ${convertSize(progress.transferred ?? 0)} / ${convertSize(progress.total)} | ${convertSize(progress.speed)}/s`,
             })
         }, 1000)
 
@@ -66,11 +76,6 @@ export default async (manifest, step) => {
         })
 
         clearInterval(progressInterval)
-    } else {
-        await streamPipeline(
-            got.stream(step.url),
-            fs.createWriteStream(_path)
-        )
     }
 
     if (step.extract) {
@@ -82,7 +87,7 @@ export default async (manifest, step) => {
 
         sendToRenderer(`installation:status`, {
             ...manifest,
-            statusText: `Extracting file...`,
+            statusText: `Extracting bundle...`,
         })
 
         await extractFile(_path, step.extract)

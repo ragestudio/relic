@@ -1,4 +1,7 @@
 import os from "node:os"
+import path from "node:path"
+import fs from "node:fs"
+import child_process from "node:child_process"
 
 global.OS_USERDATA_PATH = path.resolve(
     process.env.APPDATA ||
@@ -9,9 +12,6 @@ global.TMP_PATH = path.resolve(os.tmpdir(), "rs-bundler")
 global.INSTALLERS_PATH = path.join(global.RUNTIME_PATH, "installations")
 global.MANIFEST_PATH = path.join(global.RUNTIME_PATH, "manifests")
 
-import path from "node:path"
-import fs from "node:fs"
-
 import open from "open"
 import { rimraf } from "rimraf"
 
@@ -19,7 +19,8 @@ import readManifest from "../utils/readManifest"
 import initManifest from "../utils/initManifest"
 
 import ISM_HTTP from "./installs_steps_methods/http"
-import ISM_GIT from "./installs_steps_methods/git"
+import ISM_GIT_CLONE from "./installs_steps_methods/git_clone"
+import ISM_GIT_PULL from "./installs_steps_methods/git_pull"
 
 import pkg from "../../../package.json"
 
@@ -30,7 +31,43 @@ const RealmDBDefault = {
 
 const InstallationStepsMethods = {
     http: ISM_HTTP,
-    git: ISM_GIT,
+    git_clone: ISM_GIT_CLONE,
+    git_pull: ISM_GIT_PULL,
+}
+
+async function processGenericSteps(manifest, steps) {
+    console.log(`Processing steps...`, steps)
+
+    for await (const [stepKey, stepValue] of Object.entries(steps)) {
+        switch (stepKey) {
+            case "http_downloads": {
+                for await (const dl_step of stepValue) {
+                    await InstallationStepsMethods.http(manifest, dl_step)
+                }
+                break;
+            }
+            case "git_clones":
+            case "git_clones_steps": {
+                for await (const clone_step of stepValue) {
+                    await InstallationStepsMethods.git_clone(manifest, clone_step)
+                }
+                break;
+            }
+            case "git_pulls":
+            case "git_update":
+            case "git_pulls_steps": {
+                for await (const pull_step of stepValue) {
+                    await InstallationStepsMethods.git_pull(manifest, pull_step)
+                }
+                break;
+            }
+            default: {
+                throw new Error(`Unknown step: ${stepKey}`)
+            }
+        }
+    }
+
+    return manifest
 }
 
 export default class PkgManager {
@@ -100,7 +137,7 @@ export default class PkgManager {
         return db.installations
     }
 
-    async openBundleFolder(manifest_id) {
+    async openPackageFolder(manifest_id) {
         const db = await this.readDb()
 
         const index = db.installations.findIndex((i) => i.id === manifest_id)
@@ -110,6 +147,134 @@ export default class PkgManager {
 
             open(manifest.install_path)
         }
+    }
+
+    parseStringVars(str, manifest) {
+        if (!manifest) {
+            return str
+        }
+
+        const vars = {
+            id: manifest.id,
+            name: manifest.name,
+            version: manifest.version,
+            install_path: manifest.install_path,
+            remote_url: manifest.remote_url,
+        }
+
+        const regex = /%([^%]+)%/g
+
+        str = str.replace(regex, (match, varName) => {
+            return vars[varName]
+        })
+
+        return str
+    }
+
+    async applyChanges(manifest_id, changes) {
+        const db = await this.readDb()
+
+        const index = db.installations.findIndex((i) => i.id === manifest_id)
+
+        if (index === -1) {
+            throw new Error(`Manifest not found for id: [${manifest_id}]`)
+        }
+
+        const manifest = db.installations[index]
+
+        manifest.status = "installing"
+
+        if (!Array.isArray(manifest.applied_patches)) {
+            manifest.applied_patches = []
+        }
+
+        console.log(`Applying changes for [${manifest_id}]... >`, changes)
+
+        global.sendToRenderer(`installation:done`, {
+            ...manifest,
+            statusText: "Applying changes...",
+        })
+
+        const disablePatches = manifest.patches.filter((p) => {
+            return !changes.patches[p.id]
+        })
+
+        const installPatches = manifest.patches.filter((p) => {
+            return changes.patches[p.id]
+        })
+
+        for await (let patch of disablePatches) {
+            console.log(`Removing patch [${patch.id}]...`)
+
+            global.sendToRenderer(`installation:status`, {
+                ...manifest,
+                statusText: `Removing patch [${patch.id}]...`,
+            })
+
+            // remove patch additions
+            for await (let addition of patch.additions) {
+                // resolve patch file
+                addition.file = await this.parseStringVars(addition.file, manifest)
+
+                console.log(`Removing addition [${addition.file}]...`)
+
+                if (!fs.existsSync(addition.file)) {
+                    continue
+                }
+
+                // remove addition
+                await fs.promises.unlink(addition.file, { force: true, recursive: true })
+            }
+
+            // TODO: remove file patch overrides with original file
+
+            // remove from applied patches
+            manifest.applied_patches = manifest.applied_patches.filter((p) => {
+                return p !== patch.id
+            })
+        }
+
+        for await (let patch of installPatches) {
+            if (manifest.applied_patches.includes(patch.id)) {
+                continue
+            }
+
+            console.log(`Applying patch [${patch.id}]...`)
+
+            global.sendToRenderer(`installation:status`, {
+                ...manifest,
+                statusText: `Applying patch [${patch.id}]...`,
+            })
+
+            for await (let addition of patch.additions) {
+                console.log(addition)
+
+                // resolve patch file
+                addition.file = await this.parseStringVars(addition.file, manifest)
+
+                if (fs.existsSync(addition.file)) {
+                    continue
+                }
+
+                await processGenericSteps(manifest, addition.steps)
+            }
+
+            // add to applied patches
+            manifest.applied_patches.push(patch.id)
+        }
+
+        manifest.status = "installed"
+
+        global.sendToRenderer(`installation:done`, {
+            ...manifest,
+            statusText: "Changes applied!",
+        })
+
+        db.installations[index] = manifest
+
+        console.log(`Patches applied for [${manifest_id}]...`)
+
+        await this.writeDb(db)
     }
 
     async install(manifest) {
@@ -130,7 +295,7 @@ export default class PkgManager {
 
             manifest.status = "installing"
 
-            console.log(`Starting to install ${manifest.pack_name}...`)
+            console.log(`Starting to install ${manifest.name}...`)
             console.log(`Installing at >`, manifest.packPath)
 
             global.sendToRenderer("new:installation", manifest)
@@ -139,25 +304,23 @@ export default class PkgManager {
 
             await this.appendInstallation(manifest)
 
-            if (typeof manifest.on_install === "function") {
-                await manifest.on_install({
+            if (typeof manifest.before_install === "function") {
+                console.log(`Performing before_install hook...`)
+
+                global.sendToRenderer(`installation:status`, {
+                    ...manifest,
+                    statusText: `Performing before_install hook...`,
+                })
+
+                await manifest.before_install({
                     manifest: manifest,
                     pack_dir: manifest.packPath,
                     tmp_dir: TMP_PATH,
                 })
             }
 
-            if (typeof manifest.git_clones_steps !== "undefined" && Array.isArray(manifest.git_clones_steps)) {
-                for await (const step of manifest.git_clones_steps) {
-                    await InstallationStepsMethods.git(manifest, step)
-                }
-            }
-
-            if (typeof manifest.http_downloads !== "undefined" && Array.isArray(manifest.http_downloads)) {
-                for await (const step of manifest.http_downloads) {
-                    await InstallationStepsMethods.http(manifest, step)
-                }
-            }
+            // PROCESS STEPS
+            await processGenericSteps(manifest, manifest.install_steps)
 
             if (pendingTasks.length > 0) {
                 console.log(`Performing pending tasks...`)
@@ -194,7 +357,14 @@ export default class PkgManager {
 
             await this.appendInstallation(manifest)
 
-            console.log(`Successfully installed ${manifest.pack_name}!`)
+            // process default patches
+            const defaultPatches = manifest.patches.filter((patch) => patch.default)
+
+            this.applyChanges(manifest.id, {
+                patches: Object.fromEntries(defaultPatches.map((patch) => [patch.id, true])),
+            })
+
+            console.log(`Successfully installed ${manifest.name}!`)
 
             global.sendToRenderer(`installation:done`, {
                 ...manifest,
@@ -303,17 +473,8 @@ export default class PkgManager {
                 })
             }
 
-            if (typeof manifest.git_update !== "undefined" && Array.isArray(manifest.git_update)) {
-                for await (const step of manifest.git_update) {
-                    await InstallationStepsMethods.git(manifest, step)
-                }
-            }
-
-            if (typeof manifest.http_downloads !== "undefined" && Array.isArray(manifest.http_downloads)) {
-                for await (const step of manifest.http_downloads) {
-                    await InstallationStepsMethods.http(manifest, step)
-                }
-            }
+            // PROCESS STEPS
+            await processGenericSteps(manifest, manifest.update_steps)
 
             if (pendingTasks.length > 0) {
                 console.log(`Performing pending tasks...`)
@@ -349,7 +510,7 @@ export default class PkgManager {
 
             await this.appendInstallation(manifest)
 
-            console.log(`Successfully updated ${manifest.pack_name}!`)
+            console.log(`Successfully updated ${manifest.name}!`)
 
             global.sendToRenderer(`installation:done`, {
                 ...manifest,
@@ -394,20 +555,35 @@ export default class PkgManager {
 
         manifest = await initManifest(manifest)
 
-        if (typeof manifest.execute !== "function") {
-            global.sendToRenderer("installation:status", {
-                status: "execution_failed",
-                ...manifest,
+        if (typeof manifest.execute === "string") {
+            manifest.execute = this.parseStringVars(manifest.execute, manifest)
+
+            console.log(`Executing >`, manifest.execute)
+
+            await new Promise((resolve, reject) => {
+                const process = child_process.execFile(manifest.execute, [], {
+                    shell: true,
+                })
+
+                process.on("exit", resolve)
+                process.on("error", reject)
             })
+        } else {
+            if (typeof manifest.execute !== "function") {
+                global.sendToRenderer("installation:status", {
+                    status: "execution_failed",
+                    ...manifest,
+                })
 
-            return false
+                return false
+            }
+
+            await manifest.execute({
+                manifest,
+                pack_dir: manifest.install_path,
+                tmp_dir: TMP_PATH
+            })
         }
-
-        await manifest.execute({
-            manifest,
-            pack_dir: manifest.install_path,
-            tmp_dir: TMP_PATH
-        })
 
         global.sendToRenderer("installation:status", {
             status: "installed",

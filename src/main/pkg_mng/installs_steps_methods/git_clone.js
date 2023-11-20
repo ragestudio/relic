@@ -2,7 +2,7 @@ import path from "node:path"
 import fs from "node:fs"
 import ChildProcess from "node:child_process"
 
-export default async (manifest, step) => {
+export default async (manifest, step,) => {
     const _path = path.resolve(manifest.packPath, step.path)
 
     console.log(`Cloning ${step.url}...`)

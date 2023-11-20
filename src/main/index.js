@@ -52,23 +52,26 @@ class ElectronApp {
     "get:installations": async () => {
       return await this.pkgManager.getInstallations()
     },
-    "bundle:read": async (event, manifest_url) => {
+    "pkg:read": async (event, manifest_url) => {
       return JSON.stringify(await readManifest(manifest_url))
     },
-    "bundle:update": (event, manifest_id) => {
+    "pkg:update": (event, manifest_id) => {
       this.pkgManager.update(manifest_id)
     },
-    "bundle:exec": (event, manifest_id) => {
+    "pkg:exec": (event, manifest_id) => {
       this.pkgManager.execute(manifest_id)
     },
-    "bundle:install": async (event, manifest) => {
+    "pkg:install": async (event, manifest) => {
       this.pkgManager.install(manifest)
     },
-    "bundle:uninstall": (event, manifest_id) => {
+    "pkg:uninstall": (event, manifest_id) => {
       this.pkgManager.uninstall(manifest_id)
     },
-    "bundle:open": (event, manifest_id) => {
-      this.pkgManager.openBundleFolder(manifest_id)
+    "pkg:open": (event, manifest_id) => {
+      this.pkgManager.openPackageFolder(manifest_id)
+    },
+    "pkg:apply_changes": (event, manifest_id, changes) => {
+      this.pkgManager.applyChanges(manifest_id, changes)
     },
     "check:setup": async () => {
       return await setup()

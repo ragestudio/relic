@@ -10,7 +10,7 @@ const ManifestInfo = (props) => {
     const [error, setError] = React.useState(null)
 
     async function handleInstall() {
-        await ipc.exec("bundle:install", props.manifest)
+        await ipc.exec("pkg:install", props.manifest)
 
         if (typeof props.close === "function") {
             props.close()
@@ -21,7 +21,7 @@ const ManifestInfo = (props) => {
         setLoading(true)
 
         try {
-            const result = await ipc.exec("bundle:read", url)
+            const result = await ipc.exec("pkg:read", url)
 
             setManifest(JSON.parse(result))
 
@@ -58,7 +58,7 @@ const ManifestInfo = (props) => {
             </div>
 
             <h1>
-                {manifest.pack_name}
+                {manifest.name}
             </h1>
         </div>
 

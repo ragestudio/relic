@@ -6,6 +6,8 @@ import BarLoader from "react-spinners/BarLoader"
 
 import { MdFolder, MdDelete, MdPlayArrow, MdUpdate, MdOutlineMoreVert, MdSettings, MdInfoOutline } from "react-icons/md"
 
+import PackageOptions from "../PackageOptions"
+
 import "./index.less"
 
 const PackageItem = (props) => {
@@ -20,17 +22,17 @@ const PackageItem = (props) => {
             title: "Update",
             content: `Are you sure you want to update ${manifest.id}?`,
             onOk: () => {
-                ipc.exec("bundle:update", manifest.id)
+                ipc.exec("pkg:update", manifest.id)
             },
         })
     }
 
     const onClickPlay = () => {
-        ipc.exec("bundle:exec", manifest.id)
+        ipc.exec("pkg:exec", manifest.id)
     }
 
     const onClickFolder = () => {
-        ipc.exec("bundle:open", manifest.id)
+        ipc.exec("pkg:open", manifest.id)
     }
 
     const onClickDelete = () => {
@@ -38,8 +40,17 @@ const PackageItem = (props) => {
             title: "Uninstall",
             content: `Are you sure you want to uninstall ${manifest.id}?`,
             onOk: () => {
-                ipc.exec("bundle:uninstall", manifest.id)
+                ipc.exec("pkg:uninstall", manifest.id)
             },
+        })
+    }
+
+    const onClickOptions = () => {
+        app.modal.open(PackageOptions, {
+            manifest: manifest,
+            close: () => {
+                app.modal.close()
+            }
         })
     }
 
@@ -76,7 +87,7 @@ const PackageItem = (props) => {
                 key: "options",
                 label: "Options",
                 icon: <MdSettings />,
-                disabled: true
+                onClick: onClickOptions,
             },
             {
                 type: "divider"
@@ -123,7 +134,7 @@ const PackageItem = (props) => {
             <div className="installation_item_info">
                 <h2>
                     {
-                        manifest.pack_name
+                        manifest.name ?? manifest.pack_name
                     }
                 </h2>
                 <p>

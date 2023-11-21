@@ -6,6 +6,7 @@ import humanFormat from "human-format"
 
 import got from "got"
 
+import sendToRender from "../../utils/sendToRender"
 import extractFile from "../../utils/extractFile"
 
 function convertSize(size) {
@@ -19,7 +20,7 @@ export default async (manifest, step) => {
 
     console.log(`Downloading ${step.url} to ${_path}...`)
 
-    sendToRenderer(`installation:status`, {
+    sendToRender(`installation:status`, {
         ...manifest,
         statusText: `Downloading ${step.url}`,
     })
@@ -47,7 +48,7 @@ export default async (manifest, step) => {
 
         let lastTransferred = 0
 
-        sendToRenderer(`installation:status`, {
+        sendToRender(`installation:status`, {
             ...manifest,
             statusText: `Starting download...`,
         })
@@ -63,7 +64,7 @@ export default async (manifest, step) => {
 
             lastTransferred = progress.transferred ?? 0
 
-            sendToRenderer(`installation:${manifest.id}:status`, {
+            sendToRender(`installation:${manifest.id}:status`, {
                 ...manifest,
                 progress: progress,
                 statusText: `Downloaded ${convertSize(progress.transferred ?? 0)} / ${convertSize(progress.total)} | ${convertSize(progress.speed)}/s`,
@@ -85,7 +86,7 @@ export default async (manifest, step) => {
             step.extract = path.resolve(manifest.packPath, ".")
         }
 
-        sendToRenderer(`installation:status`, {
+        sendToRender(`installation:status`, {
             ...manifest,
             statusText: `Extracting bundle...`,
         })
@@ -93,7 +94,7 @@ export default async (manifest, step) => {
         await extractFile(_path, step.extract)
 
         if (step.delete_after_extract) {
-            sendToRenderer(`installation:status`, {
+            sendToRender(`installation:status`, {
                 ...manifest,
                 statusText: `Deleting temporal files...`,
             })

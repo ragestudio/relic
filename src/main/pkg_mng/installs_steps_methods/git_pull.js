@@ -2,12 +2,14 @@ import path from "node:path"
 import fs from "node:fs"
 import ChildProcess from "node:child_process"
 
+import sendToRender from "../../utils/sendToRender"
+
 export default async (manifest, step) => {
     const _path = path.resolve(manifest.packPath, step.path)
 
     console.log(`Pulling ${step.url}...`)
 
-    sendToRenderer(`installation:status`, {
+    sendToRender(`installation:status`, {
         ...manifest,
         statusText: `Pulling ${step.url}`,
     })

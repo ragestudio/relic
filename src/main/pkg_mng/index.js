@@ -2,6 +2,7 @@ import os from "node:os"
 import path from "node:path"
 import fs from "node:fs"
 import child_process from "node:child_process"
+import sendToRender from "../utils/sendToRender"
 
 global.OS_USERDATA_PATH = path.resolve(
     process.env.APPDATA ||
@@ -18,6 +19,7 @@ import { rimraf } from "rimraf"
 import readManifest from "../utils/readManifest"
 import initManifest from "../utils/initManifest"
 
+import ISM_DRIVE_DL from "./installs_steps_methods/drive"
 import ISM_HTTP from "./installs_steps_methods/http"
 import ISM_GIT_CLONE from "./installs_steps_methods/git_clone"
 import ISM_GIT_PULL from "./installs_steps_methods/git_pull"
@@ -30,6 +32,7 @@ const RealmDBDefault = {
 }
 
 const InstallationStepsMethods = {
+    drive_dl: ISM_DRIVE_DL,
     http: ISM_HTTP,
     git_clone: ISM_GIT_CLONE,
     git_pull: ISM_GIT_PULL,
@@ -40,6 +43,12 @@ async function processGenericSteps(manifest, steps) {
 
     for await (const [stepKey, stepValue] of Object.entries(steps)) {
         switch (stepKey) {
+            case "drive_downloads": {
+                for await (const dl_step of stepValue) {
+                    await InstallationStepsMethods.drive_dl(manifest, dl_step)
+                }
+                break;
+            }
             case "http_downloads": {
                 for await (const dl_step of stepValue) {
                     await InstallationStepsMethods.http(manifest, dl_step)
@@ -184,95 +193,97 @@ export default class PkgManager {
 
         manifest.status = "installing"
 
-        if (!Array.isArray(manifest.applied_patches)) {
-            manifest.applied_patches = []
-        }
-
         console.log(`Applying changes for [${manifest_id}]... >`, changes)
 
-        global.sendToRenderer(`installation:done`, {
+        sendToRender(`installation:done`, {
             ...manifest,
             statusText: "Applying changes...",
         })
 
-        const disablePatches = manifest.patches.filter((p) => {
-            return !changes.patches[p.id]
-        })
+        if (Array.isArray(changes.patches)) {
+            if (!Array.isArray(manifest.applied_patches)) {
+                manifest.applied_patches = []
+            }
 
-        const installPatches = manifest.patches.filter((p) => {
-            return changes.patches[p.id]
-        })
-
-        for await (let patch of disablePatches) {
-            console.log(`Removing patch [${patch.id}]...`)
-
-            global.sendToRenderer(`installation:status`, {
-                ...manifest,
-                statusText: `Removing patch [${patch.id}]...`,
+            const disablePatches = manifest.patches.filter((p) => {
+                return !changes.patches[p.id]
             })
 
-            // remove patch additions
-            for await (let addition of patch.additions) {
-                // resolve patch file
-                addition.file = await this.parseStringVars(addition.file, manifest)
+            const installPatches = manifest.patches.filter((p) => {
+                return changes.patches[p.id]
+            })
 
-                console.log(`Removing addition [${addition.file}]...`)
+            for await (let patch of disablePatches) {
+                console.log(`Removing patch [${patch.id}]...`)
 
-                if (!fs.existsSync(addition.file)) {
+                sendToRender(`installation:status`, {
+                    ...manifest,
+                    statusText: `Removing patch [${patch.id}]...`,
+                })
+
+                // remove patch additions
+                for await (let addition of patch.additions) {
+                    // resolve patch file
+                    addition.file = await this.parseStringVars(addition.file, manifest)
+
+                    console.log(`Removing addition [${addition.file}]...`)
+
+                    if (!fs.existsSync(addition.file)) {
+                        continue
+                    }
+
+                    // remove addition
+                    await fs.promises.unlink(addition.file, { force: true, recursive: true })
+                }
+
+                // TODO: remove file patch overrides with original file
+
+                // remove from applied patches
+                manifest.applied_patches = manifest.applied_patches.filter((p) => {
+                    return p !== patch.id
+                })
+            }
+
+            for await (let patch of installPatches) {
+                if (manifest.applied_patches.includes(patch.id)) {
                     continue
                 }
 
-                // remove addition
-                await fs.promises.unlink(addition.file, { force: true, recursive: true })
-            }
+                console.log(`Applying patch [${patch.id}]...`)
 
-            // TODO: remove file patch overrides with original file
+                sendToRender(`installation:status`, {
+                    ...manifest,
+                    statusText: `Applying patch [${patch.id}]...`,
+                })
 
-            // remove from applied patches
-            manifest.applied_patches = manifest.applied_patches.filter((p) => {
-                return p !== patch.id
-            })
-        }
+                for await (let addition of patch.additions) {
+                    console.log(addition)
 
-        for await (let patch of installPatches) {
-            if (manifest.applied_patches.includes(patch.id)) {
-                continue
-            }
+                    // resolve patch file
+                    addition.file = await this.parseStringVars(addition.file, manifest)
 
-            console.log(`Applying patch [${patch.id}]...`)
+                    if (fs.existsSync(addition.file)) {
+                        continue
+                    }
 
-            global.sendToRenderer(`installation:status`, {
-                ...manifest,
-                statusText: `Applying patch [${patch.id}]...`,
-            })
-
-            for await (let addition of patch.additions) {
-                console.log(addition)
-
-                // resolve patch file
-                addition.file = await this.parseStringVars(addition.file, manifest)
-
-                if (fs.existsSync(addition.file)) {
-                    continue
+                    await processGenericSteps(manifest, addition.steps)
                 }
 
-                await processGenericSteps(manifest, addition.steps)
+                // add to applied patches
+                manifest.applied_patches.push(patch.id)
             }
-
-            // add to applied patches
-            manifest.applied_patches.push(patch.id)
         }
 
         manifest.status = "installed"
 
-        global.sendToRenderer(`installation:done`, {
+        sendToRender(`installation:done`, {
             ...manifest,
             statusText: "Changes applied!",
         })
 
         db.installations[index] = manifest
 
-        console.log(`Patches applied for [${manifest_id}]...`)
+        console.log(`Changes applied for [${manifest_id}]...`)
 
         await this.writeDb(db)
     }
@@ -282,7 +293,7 @@ export default class PkgManager {
             let pendingTasks = []
 
             manifest = await readManifest(manifest).catch((error) => {
-                global.sendToRenderer("runtime:error", "Cannot fetch this manifest")
+                sendToRender("runtime:error", "Cannot fetch this manifest")
 
                 return false
             })
@@ -298,7 +309,7 @@ export default class PkgManager {
             console.log(`Starting to install ${manifest.name}...`)
             console.log(`Installing at >`, manifest.packPath)
 
-            global.sendToRenderer("new:installation", manifest)
+            sendToRender("new:installation", manifest)
 
             fs.mkdirSync(manifest.packPath, { recursive: true })
 
@@ -307,7 +318,7 @@ export default class PkgManager {
             if (typeof manifest.before_install === "function") {
                 console.log(`Performing before_install hook...`)
 
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing before_install hook...`,
                 })
@@ -325,7 +336,7 @@ export default class PkgManager {
             if (pendingTasks.length > 0) {
                 console.log(`Performing pending tasks...`)
 
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing pending tasks...`,
                 })
@@ -338,7 +349,7 @@ export default class PkgManager {
             if (typeof manifest.after_install === "function") {
                 console.log(`Performing after_install hook...`)
 
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing after_install hook...`,
                 })
@@ -357,23 +368,25 @@ export default class PkgManager {
 
             await this.appendInstallation(manifest)
 
-            // process default patches
-            const defaultPatches = manifest.patches.filter((patch) => patch.default)
+            if (manifest.patches) {
+                // process default patches
+                const defaultPatches = manifest.patches.filter((patch) => patch.default)
 
-            this.applyChanges(manifest.id, {
-                patches: Object.fromEntries(defaultPatches.map((patch) => [patch.id, true])),
-            })
+                this.applyChanges(manifest.id, {
+                    patches: Object.fromEntries(defaultPatches.map((patch) => [patch.id, true])),
+                })
+            }
 
             console.log(`Successfully installed ${manifest.name}!`)
 
-            global.sendToRenderer(`installation:done`, {
+            sendToRender(`installation:done`, {
                 ...manifest,
                 statusText: "Successfully installed",
             })
         } catch (error) {
             manifest.status = "failed"
 
-            global.sendToRenderer(`installation:error`, {
+            sendToRender(`installation:error`, {
                 ...manifest,
                 statusText: error.toString(),
             })
@@ -387,7 +400,7 @@ export default class PkgManager {
     async uninstall(manifest_id) {
         console.log(`Uninstalling >`, manifest_id)
 
-        global.sendToRenderer("installation:status", {
+        sendToRender("installation:status", {
             status: "uninstalling",
             id: manifest_id,
             statusText: `Uninstalling ${manifest_id}...`,
@@ -398,7 +411,7 @@ export default class PkgManager {
         const manifest = db.installations.find((i) => i.id === manifest_id)
 
         if (!manifest) {
-            global.sendToRenderer("runtime:error", "Manifest not found")
+            sendToRender("runtime:error", "Manifest not found")
             return false
         }
 
@@ -422,7 +435,7 @@ export default class PkgManager {
 
         await this.writeDb(db)
 
-        global.sendToRenderer("installation:uninstalled", {
+        sendToRender("installation:uninstalled", {
             id: manifest_id,
         })
     }
@@ -433,7 +446,7 @@ export default class PkgManager {
 
             console.log(`Updating >`, manifest_id)
 
-            global.sendToRenderer("installation:status", {
+            sendToRender("installation:status", {
                 status: "updating",
                 id: manifest_id,
                 statusText: `Updating ${manifest_id}...`,
@@ -444,7 +457,7 @@ export default class PkgManager {
             let manifest = db.installations.find((i) => i.id === manifest_id)
 
             if (!manifest) {
-                global.sendToRenderer("runtime:error", "Manifest not found")
+                sendToRender("runtime:error", "Manifest not found")
                 return false
             }
 
@@ -459,7 +472,7 @@ export default class PkgManager {
             manifest = await initManifest(manifest)
 
             if (typeof manifest.update === "function") {
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing update hook...`,
                 })
@@ -479,7 +492,7 @@ export default class PkgManager {
             if (pendingTasks.length > 0) {
                 console.log(`Performing pending tasks...`)
 
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing pending tasks...`,
                 })
@@ -492,7 +505,7 @@ export default class PkgManager {
             if (typeof manifest.after_update === "function") {
                 console.log(`Performing after_update hook...`)
 
-                global.sendToRenderer(`installation:status`, {
+                sendToRender(`installation:status`, {
                     ...manifest,
                     statusText: `Performing after_update hook...`,
                 })
@@ -512,14 +525,14 @@ export default class PkgManager {
 
             console.log(`Successfully updated ${manifest.name}!`)
 
-            global.sendToRenderer(`installation:done`, {
+            sendToRender(`installation:done`, {
                 ...manifest,
                 statusText: "Successfully updated",
             })
         } catch (error) {
             manifest.status = "failed"
 
-            global.sendToRenderer(`installation:error`, {
+            sendToRender(`installation:error`, {
                 ...manifest,
                 statusText: error.toString(),
             })
@@ -531,7 +544,7 @@ export default class PkgManager {
     async execute(manifest_id) {
         console.log(`Executing ${manifest_id}...`)
 
-        global.sendToRenderer("installation:status", {
+        sendToRender("installation:status", {
             status: "starting",
             id: manifest_id,
             statusText: `Executing ${manifest_id}...`,
@@ -542,7 +555,7 @@ export default class PkgManager {
         let manifest = db.installations.find((i) => i.id === manifest_id)
 
         if (!manifest) {
-            global.sendToRenderer("runtime:error", "Manifest not found")
+            sendToRender("runtime:error", "Manifest not found")
             return false
         }
 
@@ -570,7 +583,7 @@ export default class PkgManager {
             })
         } else {
             if (typeof manifest.execute !== "function") {
-                global.sendToRenderer("installation:status", {
+                sendToRender("installation:status", {
                     status: "execution_failed",
                     ...manifest,
                 })
@@ -585,7 +598,7 @@ export default class PkgManager {
             })
         }
 
-        global.sendToRenderer("installation:status", {
+        sendToRender("installation:status", {
             status: "installed",
             ...manifest,
         })

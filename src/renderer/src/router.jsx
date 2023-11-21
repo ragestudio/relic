@@ -1,6 +1,6 @@
 import React from "react"
 import BarLoader from "react-spinners/BarLoader"
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom"
+import { HashRouter, Route, Routes, useNavigate } from "react-router-dom"
 
 import GlobalStateContext from "contexts/global"
 
@@ -52,11 +52,11 @@ const NavigationController = (props) => {
 }
 
 export const InternalRouter = (props) => {
-    return <BrowserRouter>
+    return <HashRouter >
         <NavigationController>
             {props.children}
         </NavigationController>
-    </BrowserRouter>
+    </HashRouter>
 }
 
 export const PageRender = () => {

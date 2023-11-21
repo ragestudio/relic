@@ -2,51 +2,9 @@ import React from "react"
 import * as antd from "antd"
 import { Icons, Icon } from "components/Icons"
 
+import settingsList from "@renderer/settings_list"
+
 import "./index.less"
-
-const settingsList = [
-    {
-        id: "drive_auth",
-        name: "Google Drive Authorize",
-        description: "Authorize your Google Drive account to be used for bundles installation.",
-        icon: "SiGoogledrive",
-        type: "button",
-        value: async () => {
-            return api.settings.get("drive_auth")
-        },
-        render: (props) => {
-            return <antd.Button
-                type="primary"
-                onClick={() => {
-                    if (!props.value) {
-                        message.info("Authorizing...")
-                        return ipc.exec("drive:authorize")
-                    }
-
-                    return api.settings.delete("drive_auth")
-                }}
-            >
-                {
-                    props.value ? "Deauthorize" : "Authorize"
-                }
-            </antd.Button>
-        }
-    },
-    {
-        id: "check_update",
-        name: "Check for updates",
-        description: "Check for updates to the app.",
-        icon: "MdUpdate",
-        type: "button",
-        props: {
-            children: "Check",
-            onClick: () => {
-                message.info("Checking for updates...")
-                app.checkUpdates()
-            }
-        }
-    }
-]
 
 const SettingTypeToComponent = {
     switch: antd.Switch,
@@ -54,46 +12,68 @@ const SettingTypeToComponent = {
 }
 
 const SettingItem = (props) => {
-    const {
-        id,
-        name,
-        description,
-        type,
-        icon,
-        props: _props,
-        render,
-    } = props.setting
+    const { setting } = props
 
     const [loading, setLoading] = React.useState(false)
     const [value, setValue] = React.useState(null)
 
-    React.useEffect(() => {
-        if (typeof props.setting.value === "function") {
-            setLoading(true)
+    async function handleChange(value) {
+        console.log(`Setting [${setting.id}] set to >`, value)
 
-            props.setting.value().then((value) => {
+        setValue(value)
+
+        if (setting.storaged) {
+            api.settings.set(setting.id, value)
+        }
+    }
+
+    async function fetchDefaultValue() {
+        if (typeof setting.defaultValue !== "undefined") {
+            if (typeof setting.defaultValue === "function") {
+                setLoading(true)
+
+                const value = await setting.defaultValue()
+
                 setValue(value)
                 setLoading(false)
-            })
-        } else {
-            setLoading(false)
+            } else {
+                setValue(setting.defaultValue)
+                setLoading(false)
+            }
         }
-    }, [props.setting.value])
+    }
+
+    React.useEffect(() => {
+        fetchDefaultValue()
+
+        if (setting.watchIpc) {
+            for (const watchIpc of setting.watchIpc) {
+                ipc.on(watchIpc, (event, value) => {
+                    fetchDefaultValue()
+                })
+            }
+        }
+
+        return () => {
+            if (setting.watchIpc) {
+                for (const watchIpc of setting.watchIpc) {
+                    ipc.off(watchIpc, (event, value) => {
+                        fetchDefaultValue()
+                    })
+                }
+            }
+        }
+    }, [])
 
     let componentProps = {
         value: value,
-        ..._props,
+        handleChange: handleChange,
+        ...setting.props,
     }
 
-    async function handleChange(value) {
-        console.log(`Setting [${id}] set to >`, value)
-        setValue(value)
-        api.settings.set(id, value)
-    }
-
-    switch (type) {
+    switch (setting.type) {
         case "switch": {
-            componentProps.defaultChecked = defaultProps.defaultChecked ?? false
+            componentProps.defaultChecked = !!value
             componentProps.onChange = (e) => {
                 handleChange(e)
             }
@@ -101,10 +81,11 @@ const SettingItem = (props) => {
         }
     }
 
-    const Component = SettingTypeToComponent[type.toLowerCase()]
+    const Component = SettingTypeToComponent[setting.type.toLowerCase()]
+
     const Render = () => {
-        if (typeof render === "function") {
-            return render(componentProps)
+        if (typeof setting.render === "function") {
+            return setting.render(componentProps)
         }
 
         return React.createElement(Component, componentProps)
@@ -115,16 +96,16 @@ const SettingItem = (props) => {
     >
         <div className="app_settings-list-item-info">
             <div className="app_settings-list-item-label">
-                <Icon icon={icon} />
+                <Icon icon={setting.icon} />
 
                 <h2>
-                    {name}
+                    {setting.name}
                 </h2>
             </div>
 
             <div className="app_settings-list-item-description">
                 <p>
-                    {description}
+                    {setting.description}
                 </p>
             </div>
         </div>

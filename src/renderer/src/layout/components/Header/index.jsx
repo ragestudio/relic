@@ -36,6 +36,12 @@ const Header = (props) => {
 
                 <antd.Button
                     size="small"
+                    icon={<Icons.MdHome />}
+                    onClick={() => app.location.push("/")}
+                />
+
+                <antd.Button
+                    size="small"
                     icon={<Icons.MdSettings />}
                     onClick={() => app.location.push("/settings")}
                 />

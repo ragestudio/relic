@@ -89,6 +89,15 @@ class App extends React.Component {
 
       message.success("Google Drive API authorized")
     },
+    "drive:unauthorized": (event, data) => {
+      this.setState({
+        authorizedServices: {
+          drive: false,
+        },
+      })
+
+      message.success("Google Drive API unauthorized")
+    }
   }
 
   onUpdateAvailable = () => {
@@ -121,6 +130,8 @@ class App extends React.Component {
     const initResult = await ipc.exec("app:init")
 
     console.log(`[INIT] >`, initResult)
+
+    app.location.push("/")
 
     this.setState({
       loading: false,

@@ -78,7 +78,7 @@ export const PageRender = () => {
     }
 
     return <Routes>
-        <Route path="/" element={<PackagesMangerPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route exact path="/" element={<PackagesMangerPage />} />
+        <Route exact path="/settings" element={<SettingsPage />} />
     </Routes>
 }

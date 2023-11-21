@@ -1,32 +1,16 @@
-import lodash from "lodash"
+import sendToRender from "./utils/sendToRender"
 
-global.sendToRenderer = (event, data) => {
-  function serializeIpc(data) {
-    const copy = lodash.cloneDeep(data)
-
-    // remove fns
-    if (!Array.isArray(copy)) {
-      Object.keys(copy).forEach((key) => {
-        if (typeof copy[key] === "function") {
-          delete copy[key]
-        }
-      })
-    }
-
-    return copy
-  }
-
-  global.win.webContents.send(event, serializeIpc(data))
-}
-
-const { autoUpdater } = require("electron-differential-updater")
-const ProtocolRegistry = require("protocol-registry")
+global.SettingsStore = new Store({
+  name: "settings",
+  watch: true,
+})
 
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
 import isDev from "electron-is-dev"
+import Store from "electron-store"
 
 import open from "open"
 
@@ -37,6 +21,11 @@ import setup from "./setup"
 import PkgManager from "./pkg_mng"
 import { readManifest } from "./utils/readManifest"
 
+import GoogleDriveAPI from "./lib/google_drive"
+
+const { autoUpdater } = require("electron-differential-updater")
+const ProtocolRegistry = require("protocol-registry")
+
 const protocolRegistryNamespace = "rsbundle"
 
 class ElectronApp {
@@ -46,9 +35,6 @@ class ElectronApp {
   }
 
   handlers = {
-    pkg: () => {
-      return pkg
-    },
     "get:installations": async () => {
       return await this.pkgManager.getInstallations()
     },
@@ -73,9 +59,6 @@ class ElectronApp {
     "pkg:apply_changes": (event, manifest_id, changes) => {
       this.pkgManager.applyChanges(manifest_id, changes)
     },
-    "check:setup": async () => {
-      return await setup()
-    },
     "updater:check": () => {
       autoUpdater.checkForUpdates()
     },
@@ -83,18 +66,38 @@ class ElectronApp {
       setTimeout(() => {
         autoUpdater.quitAndInstall()
       }, 3000)
-    }
+    },
+    "settings:get": (e, key) => {
+      return global.SettingsStore.get(key)
+    },
+    "settings:set": (e, key, value) => {
+      return global.SettingsStore.set(key, value)
+    },
+    "settings:delete": (e, key) => {
+      return global.SettingsStore.delete(key)
+    },
+    "settings:has": (e, key) => {
+      return global.SettingsStore.has(key)
+    },
+    "app:init": async (event, data) => {
+      await setup()
+
+      // check if can decode google drive token
+      const googleDrive_enabled = !!await GoogleDriveAPI.readCredentials()
+
+      return {
+        pkg: pkg,
+        authorizedServices: {
+          drive: googleDrive_enabled,
+        },
+      }
+    },
   }
 
   events = {
     "open-runtime-path": () => {
       return open(this.pkgManager.runtimePath)
     },
-  }
-
-  sendToRender(event, ...args) {
-    console.log(`[sendToRender][${event}]`, ...args)
-    this.win.webContents.send(event, ...args)
   }
 
   createWindow() {
@@ -129,8 +132,6 @@ class ElectronApp {
   }
 
   handleURLProtocol(url) {
-    console.log(url)
-
     const urlStarter = `${protocolRegistryNamespace}://`
 
     if (url.startsWith(urlStarter)) {
@@ -143,18 +144,17 @@ class ElectronApp {
 
         switch (action) {
           case "install": {
-            return this.sendToRender("installation:invoked", value)
+            return sendToRender("installation:invoked", value)
           }
-
           default: {
-            return this.sendToRender("new:message", {
+            return sendToRender("new:message", {
               message: "Unrecognized URL action",
             })
           }
         }
       } else {
         // by default if no action is specified, assume is a install action
-        return this.sendToRender("installation:invoked", urlValue)
+        return sendToRender("installation:invoked", urlValue)
       }
     }
   }
@@ -217,7 +217,7 @@ class ElectronApp {
     autoUpdater.on("update-downloaded", (ev, info) => {
       console.log(info)
 
-      this.sendToRender("update-available", info)
+      sendToRender("update-available", info)
     })
 
     if (isDev) {
@@ -240,7 +240,9 @@ class ElectronApp {
       }
     }
 
-    this.createWindow()
+    await GoogleDriveAPI.init()
+
+    await this.createWindow()
 
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) {

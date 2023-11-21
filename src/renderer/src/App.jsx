@@ -10,7 +10,7 @@ import ManifestInfo from "components/ManifestInfo"
 import AppHeader from "layout/components/Header"
 import AppModalDialog from "layout/components/ModalDialog"
 
-import { PageRender } from "./router.jsx"
+import { InternalRouter, PageRender } from "./router.jsx"
 
 globalThis.getRootCssVar = getRootCssVar
 globalThis.notification = antd.notification
@@ -32,7 +32,10 @@ window.app = {
         app.modal.close()
       }
     })
-  }
+  },
+  checkUpdates: () => {
+    ipc.exec("updater:check")
+  },
 }
 
 class App extends React.Component {
@@ -41,6 +44,10 @@ class App extends React.Component {
     pkg: null,
     initializing: false,
     updateAvailable: false,
+
+    authorizedServices: {
+      drive: false,
+    },
   }
 
   ipcEvents = {
@@ -49,14 +56,6 @@ class App extends React.Component {
     },
     "runtime:info": (event, data) => {
       antd.message.info(data)
-    },
-    "initializing_text": (event, data) => {
-      this.setState({
-        initializing_text: data,
-      })
-    },
-    "installation:invoked": (event, manifest) => {
-      app.invokeInstall(manifest)
     },
     "new:notification": (event, data) => {
       antd.notification[data.type || "info"]({
@@ -71,26 +70,47 @@ class App extends React.Component {
       antd.message[data.type || "info"](data.message)
     },
     "update-available": (event, data) => {
+      this.onUpdateAvailable(data)
+    },
+    "initializing_text": (event, data) => {
       this.setState({
-        updateAvailable: true,
+        initializing_text: data,
+      })
+    },
+    "installation:invoked": (event, manifest) => {
+      app.invokeInstall(manifest)
+    },
+    "drive:authorized": (event, data) => {
+      this.setState({
+        authorizedServices: {
+          drive: true,
+        },
       })
 
-      console.log(data)
+      message.success("Google Drive API authorized")
+    },
+  }
 
-      antd.Modal.confirm({
-        title: "Update Available",
-        content: <>
-          <p>
-            A new version of the application is available.
-          </p>
-        </>,
-        okText: "Update",
-        cancelText: "Later",
-        onOk: () => {
-          app.applyUpdate()
-        }
-      })
-    }
+  onUpdateAvailable = () => {
+    this.setState({
+      updateAvailable: true,
+    })
+
+    console.log(data)
+
+    antd.Modal.confirm({
+      title: "Update Available",
+      content: <>
+        <p>
+          A new version of the application is available.
+        </p>
+      </>,
+      okText: "Update",
+      cancelText: "Later",
+      onOk: () => {
+        app.applyUpdate()
+      }
+    })
   }
 
   componentDidMount = async () => {
@@ -98,13 +118,16 @@ class App extends React.Component {
       ipc.on(event, this.ipcEvents[event])
     }
 
-    const pkg = await ipc.exec("pkg")
+    const initResult = await ipc.exec("app:init")
 
-    await ipc.exec("check:setup")
+    console.log(`[INIT] >`, initResult)
 
     this.setState({
-      pkg: pkg,
       loading: false,
+      pkg: initResult.pkg,
+      authorizedServices: {
+        drive: initResult.authorizedServices?.drive ?? false
+      },
     })
   }
 
@@ -125,17 +148,19 @@ class App extends React.Component {
         algorithm: antd.theme.darkAlgorithm
       }}
     >
-      <GlobalStateContext.Provider value={this.state}>
-        <AppModalDialog />
+      <InternalRouter>
+        <GlobalStateContext.Provider value={this.state}>
+          <AppModalDialog />
 
-        <antd.Layout className="app_layout">
-          <AppHeader />
+          <antd.Layout className="app_layout">
+            <AppHeader />
 
-          <antd.Layout.Content className="app_content">
-            <PageRender />
-          </antd.Layout.Content>
-        </antd.Layout>
-      </GlobalStateContext.Provider>
+            <antd.Layout.Content className="app_content">
+              <PageRender />
+            </antd.Layout.Content>
+          </antd.Layout>
+        </GlobalStateContext.Provider>
+      </InternalRouter>
     </antd.ConfigProvider>
   }
 }

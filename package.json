@@ -1,6 +1,6 @@
 {
   "name": "rs-bundler",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "RageStudio Bundler Utility GUI",
   "main": "./out/main/index.js",
   "author": "RageStudio",
@@ -22,7 +22,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
-    "@google-cloud/local-auth": "^2.1.0",
+    "@getstation/electron-google-oauth2": "^14.0.0",
     "@imjs/electron-differential-updater": "^5.1.7",
     "@ragestudio/hermes": "^0.1.1",
     "antd": "^5.10.2",

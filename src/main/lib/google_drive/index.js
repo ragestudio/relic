@@ -1,9 +1,11 @@
 import fs from "node:fs"
 import path from "node:path"
+
+const ElectronGoogleOAuth2 = require("@getstation/electron-google-oauth2").default
+
 import { ipcMain } from "electron"
 import progressHandler from "progress-stream"
 
-import { authenticate } from "@google-cloud/local-auth"
 import { google } from "googleapis"
 
 import { safeStorage } from "electron"
@@ -11,8 +13,6 @@ import { safeStorage } from "electron"
 import sendToRender from "../../utils/sendToRender"
 
 export default class GoogleDriveAPI {
-    static drive_app_cred_path = path.resolve(process.cwd(), "drive.secret.json")
-
     static async createClientAuthFromCredentials(credentials) {
         return await google.auth.fromJSON(credentials)
     }
@@ -34,6 +34,11 @@ export default class GoogleDriveAPI {
 
     static async readCredentials() {
         const encryptedValue = global.SettingsStore.get("drive_auth")
+
+        if (!encryptedValue) {
+            return null
+        }
+
         const decryptedValue = safeStorage.decryptString(Buffer.from(encryptedValue, "latin1"))
 
         if (!decryptedValue) {
@@ -44,12 +49,10 @@ export default class GoogleDriveAPI {
     }
 
     static async saveCredentials(credentials) {
-        const app_credentials = JSON.parse(fs.readFileSync(GoogleDriveAPI.drive_app_cred_path)).installed
-
         const payload = {
             type: "authorized_user",
-            client_id: app_credentials.client_id,
-            client_secret: app_credentials.client_secret,
+            client_id: credentials.client_id,
+            client_secret: credentials.client_secret,
             access_token: credentials.access_token,
             refresh_token: credentials.refresh_token,
         }
@@ -62,19 +65,38 @@ export default class GoogleDriveAPI {
     }
 
     static async authorize() {
-        const auth = await authenticate({
-            scopes: ["https://www.googleapis.com/auth/drive"],
-            keyfilePath: GoogleDriveAPI.drive_app_cred_path,
-        })
+        console.log("Authorizing Google Drive...")
 
-        await GoogleDriveAPI.saveCredentials(auth.credentials)
+        const auth = await global._drive_oauth.openAuthWindowAndGetTokens()
+
+        await GoogleDriveAPI.saveCredentials({
+            ...auth,
+            client_id: import.meta.env.MAIN_VITE_DRIVE_ID,
+            client_secret: import.meta.env.MAIN_VITE_DRIVE_SECRET,
+        })
 
         await sendToRender("drive:authorized")
 
         return auth
     }
 
+    static async unauthorize() {
+        console.log("unauthorize Google Drive...")
+
+        global.SettingsStore.delete("drive_auth")
+
+        await sendToRender("drive:unauthorized")
+    }
+
     static async init() {
+        console.log("Initializing Google Drive...")
+
+        global._drive_oauth = new ElectronGoogleOAuth2(
+            import.meta.env.MAIN_VITE_DRIVE_ID,
+            import.meta.env.MAIN_VITE_DRIVE_SECRET,
+            ["https://www.googleapis.com/auth/drive.readonly"],
+        )
+
         // register ipc events
         for (const [key, fn] of Object.entries(GoogleDriveAPI.ipcHandlers)) {
             ipcMain.handle(key, fn)
@@ -167,5 +189,6 @@ export default class GoogleDriveAPI {
     static ipcHandlers = {
         "drive:listFiles": GoogleDriveAPI.operations.listFiles,
         "drive:authorize": GoogleDriveAPI.authorize,
+        "drive:unauthorize": GoogleDriveAPI.unauthorize,
     }
 }

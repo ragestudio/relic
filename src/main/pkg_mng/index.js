@@ -576,6 +576,7 @@ export default class PkgManager {
             await new Promise((resolve, reject) => {
                 const process = child_process.execFile(manifest.execute, [], {
                     shell: true,
+                    cwd: manifest.install_path,
                 })
 
                 process.on("exit", resolve)

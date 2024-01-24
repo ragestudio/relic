@@ -274,6 +274,18 @@ export default class PkgManager {
             }
         }
 
+        if (changes.configs) {
+            if (!manifest.storaged_configs) {
+                manifest.storaged_configs = {}
+            }
+
+            if (Object.keys(changes.configs).length !== 0) {
+                Object.entries(changes.configs).forEach(([key, value]) => {
+                    manifest.storaged_configs[key] = value
+                })
+            }
+        }
+
         manifest.status = "installed"
 
         sendToRender(`installation:done`, {
@@ -583,20 +595,33 @@ export default class PkgManager {
                 process.on("error", reject)
             })
         } else {
-            if (typeof manifest.execute !== "function") {
-                sendToRender("installation:status", {
+            try {
+                if (typeof manifest.execute !== "function") {
+                    sendToRender("installation:status", {
+                        status: "execution_failed",
+                        ...manifest,
+                    })
+
+                    return false
+                }
+
+                await manifest.execute({
+                    manifest,
+                    pack_dir: manifest.install_path,
+                    tmp_dir: TMP_PATH,
+                })
+            } catch (error) {
+                sendToRender("new:notification", {
+                    message: "Failed to launch",
+                    description: error.toString(),
+                    type: "error",
+                })
+
+                return sendToRender("installation:status", {
                     status: "execution_failed",
                     ...manifest,
                 })
-
-                return false
             }
-
-            await manifest.execute({
-                manifest,
-                pack_dir: manifest.install_path,
-                tmp_dir: TMP_PATH
-            })
         }
 
         sendToRender("installation:status", {

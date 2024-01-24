@@ -159,28 +159,33 @@ class ElectronApp {
     }
   }
 
+  handleOnSecondInstance = async (event, commandLine, workingDirectory) => {
+    event.preventDefault()
+
+    // Someone tried to run a second instance, we should focus our window.
+    if (this.win) {
+      if (this.win.isMinimized()) {
+        this.win.restore()
+      }
+
+      this.win.focus()
+    }
+
+    console.log(`Second instance >`, commandLine)
+
+    const url = commandLine.pop()
+
+    await this.handleURLProtocol(url)
+  }
+
   async initialize() {
-    const gotTheLock = app.requestSingleInstanceLock()
+    // Set app user model id for windows
+    electronApp.setAppUserModelId("com.electron")
+
+    const gotTheLock = await app.requestSingleInstanceLock()
 
     if (!gotTheLock) {
-      app.quit()
-    } else {
-      app.on("second-instance", (event, commandLine, workingDirectory) => {
-        event.preventDefault()
-
-        // Someone tried to run a second instance, we should focus our window.
-        if (this.win) {
-          if (this.win.isMinimized()) {
-            this.win.restore()
-          }
-
-          this.win.focus()
-        }
-
-        const url = commandLine.pop()
-
-        this.handleURLProtocol(url)
-      })
+      return app.quit()
     }
 
     for (const key in this.handlers) {
@@ -190,11 +195,8 @@ class ElectronApp {
     for (const key in this.events) {
       ipcMain.on(key, this.events[key])
     }
-
-    await app.whenReady()
-
-    // Set app user model id for windows
-    electronApp.setAppUserModelId("com.electron")
+    
+    app.on("second-instance", this.handleOnSecondInstance)
 
     app.on("open-url", (event, url) => {
       event.preventDefault()
@@ -206,19 +208,19 @@ class ElectronApp {
       optimizer.watchWindowShortcuts(window)
     })
 
-    autoUpdater.on("update-available", (ev, info) => {
-      console.log(info)
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        this.createWindow()
+      }
     })
 
-    autoUpdater.on("error", (ev, err) => {
-      console.error(err)
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") {
+        app.quit()
+      }
     })
 
-    autoUpdater.on("update-downloaded", (ev, info) => {
-      console.log(info)
-
-      sendToRender("update-available", info)
-    })
+    await app.whenReady()
 
     if (isDev) {
       if (app.isDefaultProtocolClient(protocolRegistryNamespace)) {
@@ -240,23 +242,25 @@ class ElectronApp {
       }
     }
 
+    autoUpdater.on("update-available", (ev, info) => {
+      console.log(info)
+    })
+
+    autoUpdater.on("error", (ev, err) => {
+      console.error(err)
+    })
+
+    autoUpdater.on("update-downloaded", (ev, info) => {
+      console.log(info)
+
+      sendToRender("update-available", info)
+    })
+
     await GoogleDriveAPI.init()
 
     await this.createWindow()
 
-    app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        this.createWindow()
-      }
-    })
-
-    app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") {
-        app.quit()
-      }
-    })
-
-    autoUpdater.checkForUpdates()
+    await autoUpdater.checkForUpdates()
   }
 }
 

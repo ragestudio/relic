@@ -18,6 +18,13 @@
 
             justify-content: space-between;
 
+            p {
+                display: inline-flex;
+                flex-direction: row;
+
+                align-items: center;
+            }
+
             font-size: 1rem;
         }
 
@@ -61,6 +68,40 @@
                 align-items: center;
 
                 padding-left: 5px;
+            }
+        }
+    }
+
+    .package_configs-option {
+        display: flex;
+        flex-direction: column;
+
+        gap: 10px;
+
+        .package_configs-option-header {
+            display: flex;
+            flex-direction: column;
+
+            .package_configs-option-label {
+                display: flex;
+                flex-direction: row;
+
+                align-items: center;
+
+                gap: 10px;
+
+                opacity: 0.8;
+            }
+        }
+
+        .package_configs-option-content {
+            display: flex;
+            flex-direction: column;
+
+            gap: 10px;
+
+            .ant-input-outlined {
+                border-color: #d6d6d6;
             }
         }
     }

@@ -1,38 +1,114 @@
 import React from "react"
 import * as antd from "antd"
+import { Icon } from "components/Icons"
 
 import "./index.less"
 
-const Options = (props) => {
-    const { options = {} } = props
+const PKGConfigsComponents = {
+    switch: antd.Switch,
+    button: antd.Button,
+    input: antd.Input,
+    slider: antd.Slider,
+}
 
-    if (Object.keys(options).length === 0) {
+const PKGConfigsComponentByTypes = {
+    string: "input",
+    action: "button",
+    bool: "switch",
+    number: "slider",
+}
+
+const PKGConfigs = (props) => {
+    const { defaultConfigs = {}, configs = {} } = props
+
+    if (Object.keys(defaultConfigs).length === 0) {
         return <p>
-            No options available
+            No configuration available
         </p>
     }
 
-    return Object.keys(options).map((key, index) => {
+    console.log(defaultConfigs, configs)
+
+    return Object.keys(defaultConfigs).map((key, index) => {
+        const config = defaultConfigs[key]
+        const storagedValue = configs[key]
+
+        const ComponentType = config.ui_component ?? PKGConfigsComponentByTypes[config.type] ?? "input"
+        const ConfigComponent = PKGConfigsComponents[ComponentType]
+
+        if (ConfigComponent == null) {
+            return null
+        }
+
+        const ComponentsProps = {
+            ...config.ui_component_props,
+            defaultValue: storagedValue ?? config.default,
+        }
+
+        switch (ComponentType) {
+            case "input": {
+                ComponentsProps.onChange = (e) => {
+                    props.onChange(key, e.target.value)
+                }
+                break
+            }
+
+            case "slider": {
+                ComponentsProps.onChange = (value) => {
+                    props.onChange(key, value)
+                }
+                break
+            }
+
+            case "switch": {
+                ComponentsProps.onChange = (checked) => {
+                    props.onChange(key, checked)
+                }
+                break
+            }
+
+            default: {
+                ComponentsProps.onChange = (value) => {
+                    props.onChange(key, value)
+                }
+                break;
+            }
+        }
+
         return <div
             key={index}
             id={key}
-            className="package_options-option"
+            className="package_configs-option"
         >
-            <antd.Switch
-                defaultChecked={options[key]}
-                onChange={(e) => {
-                    props.onChange(key, e)
-                }}
-            />
+            <div className="package_configs-option-header">
+                <span className="package_configs-option-label">
+                    {
+                        config.icon && <Icon
+                            icon={config.icon}
+                        />
+                    }
+                    {
+                        config.label ?? key
+                    }
+                </span>
 
-            <span>
-                {key}
-            </span>
+                {
+                    config.description && <p className="package_configs-option-description">
+                        {key}
+                    </p>
+                }
+            </div>
+
+            <div className="package_configs-option-content">
+                {
+                    React.createElement(ConfigComponent, ComponentsProps)
+                }
+            </div>
         </div>
     })
 }
 
-const Patches = (props) => {
+const PKGPatches = (props) => {
     const { patches = [], applied_patches = [] } = props
 
     if (patches.length === 0) {
@@ -63,11 +139,15 @@ const Patches = (props) => {
 const PackageOptions = (props) => {
     const { manifest } = props
 
+    if (!Array.isArray(manifest.applied_patches)) {
+        manifest.applied_patches = Array()
+    }
+
     const [changes, setChanges] = React.useState({
-        options: manifest.options ?? {},
-        patches: Object.fromEntries(manifest.patches.map((p) => {
+        configs: {},
+        patches: manifest.patches ? Object.fromEntries(manifest.patches.map((p) => {
             return [p.id, manifest.applied_patches.includes(p.id)]
-        }))
+        })) : null
     })
 
     function applyChanges() {
@@ -93,37 +173,50 @@ const PackageOptions = (props) => {
         })
     }
 
+    function canApplyChanges() {
+        return Object.keys(changes).length > 0
+    }
+
     return <div className="package_options">
-        <div className="package_options-field">
-            <div className="package_options-field-header">
-                <p>Options</p>
-            </div>
+        {
+            manifest.configs && <div className="package_options-field">
+                <div className="package_options-field-header">
+                    <p>
+                        <Icon
+                            icon="MdSettingsSuggest"
+                        /> Configuration
+                    </p>
+                </div>
 
-            <div className="package_options-field-body">
-                <Options
-                    options={manifest.options}
-                    onChange={(key, value) => {
-                        handleChanges("options", key, value)
-                    }}
-                />
+                <div className="package_options-field-body">
+                    <PKGConfigs
+                        defaultConfigs={manifest.configs}
+                        configs={manifest.storaged_configs}
+                        onChange={(key, value) => {
+                            handleChanges("configs", key, value)
+                        }}
+                    />
+                </div>
             </div>
-        </div>
+        }
 
-        <div className="package_options-field">
-            <div className="package_options-field-header">
-                <p>Patches</p>
-            </div>
+        {
+            manifest.patches && <div className="package_options-field">
+                <div className="package_options-field-header">
+                    <p>Patches</p>
+                </div>
 
-            <div className="package_options-field-body">
-                <Patches
-                    patches={manifest.patches}
-                    applied_patches={manifest.applied_patches}
-                    onChange={(key, value) => {
-                        handleChanges("patches", key, value)
-                    }}
-                />
+                <div className="package_options-field-body">
+                    <PKGPatches
+                        patches={manifest.patches}
+                        applied_patches={manifest.applied_patches}
+                        onChange={(key, value) => {
+                            handleChanges("patches", key, value)
+                        }}
+                    />
+                </div>
             </div>
-        </div>
+        }
 
         <div className="package_options-info">
             <div className="package_options-info-item">
@@ -191,6 +284,7 @@ const PackageOptions = (props) => {
             <antd.Button
                 type="primary"
                 onClick={applyChanges}
+                disabled={!canApplyChanges()}
             >
                 Apply
             </antd.Button>

@@ -4,7 +4,7 @@ import ChildProcess from "node:child_process"
 
 import sendToRender from "../../utils/sendToRender"
 
-export default async (manifest, step,) => {
+export default async (manifest, step) => {
     const _path = path.resolve(manifest.packPath, step.path)
 
     console.log(`Cloning ${step.url}...`)

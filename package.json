@@ -1,6 +1,6 @@
 {
   "name": "rs-bundler",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "RageStudio Bundler Utility GUI",
   "main": "./out/main/index.js",
   "author": "RageStudio",
@@ -25,7 +25,9 @@
     "@getstation/electron-google-oauth2": "^14.0.0",
     "@imjs/electron-differential-updater": "^5.1.7",
     "@ragestudio/hermes": "^0.1.1",
+    "adm-zip": "^0.5.10",
     "antd": "^5.10.2",
+    "checksum": "^1.0.0",
     "classnames": "^2.3.2",
     "electron-differential-updater": "^4.3.2",
     "electron-is-dev": "^2.0.0",
@@ -43,8 +45,10 @@
     "react-icons": "^4.11.0",
     "react-router-dom": "^6.19.0",
     "react-spinners": "^0.13.8",
+    "request": "^2.88.2",
     "rimraf": "^5.0.5",
-    "unzipper": "^0.10.14"
+    "unzipper": "^0.10.14",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

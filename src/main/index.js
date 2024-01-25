@@ -193,7 +193,7 @@ class ElectronApp {
     for (const key in this.events) {
       ipcMain.on(key, this.events[key])
     }
-    
+
     app.on("second-instance", this.handleOnSecondInstance)
 
     app.on("open-url", (event, url) => {
@@ -240,25 +240,25 @@ class ElectronApp {
       }
     }
 
-    autoUpdater.on("update-available", (ev, info) => {
-      console.log(info)
-    })
-
-    autoUpdater.on("error", (ev, err) => {
-      console.error(err)
-    })
-
-    autoUpdater.on("update-downloaded", (ev, info) => {
-      console.log(info)
-
-      sendToRender("update-available", info)
-    })
-
     await GoogleDriveAPI.init()
 
     await this.createWindow()
 
     if (!isDev) {
+      autoUpdater.on("update-available", (ev, info) => {
+        console.log(info)
+      })
+
+      autoUpdater.on("error", (ev, err) => {
+        console.error(err)
+      })
+
+      autoUpdater.on("update-downloaded", (ev, info) => {
+        console.log(info)
+
+        sendToRender("app:update_available", info)
+      })
+
       await autoUpdater.checkForUpdates()
     }
   }

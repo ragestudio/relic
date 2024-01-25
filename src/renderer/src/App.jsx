@@ -79,7 +79,7 @@ class App extends React.Component {
     "new:message": (event, data) => {
       antd.message[data.type || "info"](data.message)
     },
-    "update-available": (event, data) => {
+    "app:update_available": (event, data) => {
       this.onUpdateAvailable(data)
     },
     "pkg:update_available": (event, data) => {

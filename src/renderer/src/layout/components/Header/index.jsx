@@ -29,6 +29,7 @@ const Header = (props) => {
                         size="small"
                         icon={<Icons.MdDownload />}
                         onClick={app.applyUpdate}
+                        type="primary"
                     >
                         Update now
                     </antd.Button>

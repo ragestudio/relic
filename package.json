@@ -1,6 +1,6 @@
 {
   "name": "rs-bundler",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "RageStudio Bundler Utility GUI",
   "main": "./out/main/index.js",
   "author": "RageStudio",

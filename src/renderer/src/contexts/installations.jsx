@@ -1,8 +1,6 @@
 import React from "react"
 import * as antd from "antd"
 
-import ManifestInfo from "components/ManifestInfo"
-
 export const Context = React.createContext([])
 
 export class WithContext extends React.Component {
@@ -12,7 +10,7 @@ export class WithContext extends React.Component {
     }
 
     ipcEvents = {
-        "pkg:new": (event,data) => {
+        "pkg:new": (event, data) => {
             antd.message.loading(`Installing ${data.id}`)
 
             let newData = this.state.packages
@@ -63,7 +61,7 @@ export class WithContext extends React.Component {
             }
 
             console.log(`[ipc] pkg:update:status >`, data)
-        },
+        }
     }
 
     componentDidMount = async () => {
@@ -98,7 +96,7 @@ export class WithContext extends React.Component {
                 install: this.install
             }}
         >
-          {this.props.children}
+            {this.props.children}
         </Context.Provider>
     }
 }

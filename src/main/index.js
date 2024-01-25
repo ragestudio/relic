@@ -48,11 +48,11 @@ class ElectronApp {
     "pkg:apply": (event, manifest_id, changes) => {
       this.pkgManager.applyChanges(manifest_id, changes)
     },
-    "pkg:uninstall": (event, manifest_id) => {
-      this.pkgManager.uninstall(manifest_id)
+    "pkg:uninstall": (event, ...args) => {
+      this.pkgManager.uninstall(...args)
     },
-    "pkg:execute": (event, manifest_id) => {
-      this.pkgManager.execute(manifest_id)
+    "pkg:execute": (event, ...args) => {
+      this.pkgManager.execute(...args)
     },
     "pkg:open": (event, manifest_id) => {
       this.pkgManager.open(manifest_id)

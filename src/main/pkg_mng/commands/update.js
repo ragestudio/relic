@@ -88,7 +88,7 @@ export default async function update(pkg_id) {
             status: "installed",
         })
 
-        sendToRender(`new:message`, {
+        sendToRender(`new:notification`, {
             message: `(${pkg.name}) successfully updated!`,
         })
 

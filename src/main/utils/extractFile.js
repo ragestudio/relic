@@ -8,7 +8,7 @@ import unzipper from "unzipper"
 export async function extractFile(file, dest) {
     const ext = path.extname(file)
 
-    console.log(`Extracting ${file} to ${dest}...`)
+    console.log(`extractFile() | Extracting ${file} to ${dest}...`)
 
     switch (ext) {
         case ".zip": {

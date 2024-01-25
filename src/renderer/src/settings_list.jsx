@@ -45,5 +45,14 @@ export default [
             }
         },
         storaged: false
+    },
+    {
+        id: "pkg_auto_update_on_execute",
+        name: "Packages auto update",
+        description: "If a update is available, automatically update the app when it is executed.",
+        icon: "MdUpdate",
+        type: "switch",
+        storaged: true,
+        defaultValue: false
     }
 ]

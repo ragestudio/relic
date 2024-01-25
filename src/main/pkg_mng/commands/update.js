@@ -84,7 +84,7 @@ export default async function update(pkg_id) {
 
         // update render
         sendToRender(`pkg:update:status`, {
-            id: pkg_id,
+            ...pkg,
             status: "installed",
         })
 
@@ -97,7 +97,7 @@ export default async function update(pkg_id) {
     } catch (error) {
         // update render
         sendToRender(`pkg:update:status`, {
-            id: pkg_id,
+            ...pkg,
             status: "error",
             statusText: error.toString(),
         })

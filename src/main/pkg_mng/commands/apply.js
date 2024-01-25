@@ -119,8 +119,13 @@ export default async function apply(pkg_id, changes) {
 
     await updateInstalledPackage(pkg)
 
+    sendToRender(`new:notification`, {
+        type: "success",
+        message: "Changes applied!",
+    })
+
     sendToRender(`pkg:update:status`, {
-        id: pkg_id,
+        ...pkg,
         status: "installed",
         statusText: "Changes applied!",
     })

@@ -6,8 +6,9 @@ import GlobalStateContext from "contexts/global"
 import getRootCssVar from "utils/getRootCssVar"
 
 import ManifestInfo from "components/ManifestInfo"
+import PackageUpdateAvailable from "components/PackageUpdateAvailable"
 
-import AppHeader from "layout/components/Header"
+import AppLayout from "layout"
 import AppModalDialog from "layout/components/ModalDialog"
 
 import { InternalRouter, PageRender } from "./router.jsx"
@@ -28,6 +29,14 @@ window.app = {
 
     app.modal.open(ManifestInfo, {
       manifest: manifest,
+      close: () => {
+        app.modal.close()
+      }
+    })
+  },
+  pkgUpdateAvailable: (update_data) => {
+    app.modal.open(PackageUpdateAvailable, {
+      update: update_data,
       close: () => {
         app.modal.close()
       }
@@ -58,12 +67,13 @@ class App extends React.Component {
       antd.message.info(data)
     },
     "new:notification": (event, data) => {
-      antd.notification[data.type || "info"]({
+      app.notification[data.type || "info"]({
         message: data.message,
         description: data.description,
         loading: data.loading,
         duration: data.duration,
         icon: data.icon,
+        placement: "bottomLeft"
       })
     },
     "new:message": (event, data) => {
@@ -71,6 +81,9 @@ class App extends React.Component {
     },
     "update-available": (event, data) => {
       this.onUpdateAvailable(data)
+    },
+    "pkg:update_available": (event, data) => {
+      app.pkgUpdateAvailable(data)
     },
     "initializing_text": (event, data) => {
       this.setState({
@@ -163,13 +176,9 @@ class App extends React.Component {
         <GlobalStateContext.Provider value={this.state}>
           <AppModalDialog />
 
-          <antd.Layout className="app_layout">
-            <AppHeader />
-
-            <antd.Layout.Content className="app_content">
-              <PageRender />
-            </antd.Layout.Content>
-          </antd.Layout>
+          <AppLayout>
+            <PageRender />
+          </AppLayout>
         </GlobalStateContext.Provider>
       </InternalRouter>
     </antd.ConfigProvider>

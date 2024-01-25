@@ -7,6 +7,8 @@ import initManifest from "../../utils/initManifest"
 import parseStringVars from "../../utils/parseStringVars"
 import sendToRender from "../../utils/sendToRender"
 
+import UpdateCMD from "./update"
+
 export default async function execute(pkg_id, { force = false } = {}) {
     let pkg = await getInstalledPackages(pkg_id)
 
@@ -36,20 +38,23 @@ export default async function execute(pkg_id, { force = false } = {}) {
         if (pkg._original_manifest) {
             if ((pkg._original_manifest.version !== pkg.version) && !force) {
                 console.log(`[${pkg_id}] execute() | Update available (${pkg._original_manifest.version} -> ${pkg.version}). Aborting...`,)
-                console.log(pkg._original_manifest)
 
-                sendToRender("pkg:update_available", {
-                    manifest: pkg._original_manifest,
-                    current_version: pkg._original_manifest.version,
-                    new_version: pkg.version,
-                })
+                if (global.SettingsStore.get("pkg_auto_update_on_execute") === true) {
+                    await UpdateCMD(pkg_id)
+                } else {
+                    sendToRender("pkg:update_available", {
+                        manifest: pkg._original_manifest,
+                        current_version: pkg._original_manifest.version,
+                        new_version: pkg.version,
+                    })
 
-                sendToRender("pkg:update:status", {
-                    id: pkg_id,
-                    status: "installed",
-                })
+                    sendToRender("pkg:update:status", {
+                        id: pkg_id,
+                        status: "installed",
+                    })
 
-                return false
+                    return false
+                }
             }
         }
     }

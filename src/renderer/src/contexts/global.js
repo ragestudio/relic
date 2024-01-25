@@ -2,7 +2,7 @@ import React from "react"
 
 const GlobalStateContext = React.createContext({
     pkg: {},
-    installations: [],
+    packages: [],
 })
 
 export default GlobalStateContext

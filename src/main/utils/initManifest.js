@@ -1,6 +1,7 @@
 import path from "node:path"
 import os from "node:os"
 
+import Vars from "../vars"
 import PublicLibs from "../public_libraries"
 
 async function importLib(libs) {
@@ -16,15 +17,15 @@ async function importLib(libs) {
 }
 
 export default async (manifest = {}) => {
-    const packPath = path.resolve(INSTALLERS_PATH, manifest.id)
+    const install_path = path.resolve(Vars.packages_path, manifest.id)
+    const os_string = `${os.platform()}-${os.arch()}`
 
-    const osString = `${os.platform()}-${os.arch()}`
+    manifest.install_path = install_path
 
     if (typeof manifest.init === "function") {
         const init_result = await manifest.init({
-            pack_dir: packPath,
-            tmp_dir: TMP_PATH,
-            os_string: osString,
+            install_path: install_path,
+            os_string: os_string,
         })
 
         manifest = {
@@ -37,12 +38,8 @@ export default async (manifest = {}) => {
 
     if (Array.isArray(manifest.import_libs)) {
         manifest.libraries = await importLib(manifest.import_libs)
-        console.log(`Imported libraries: ${manifest.import_libs.join(", ")}`)
+        console.log(`[${manifest.id}] initManifest() | Using libraries: ${manifest.import_libs.join(", ")}`)
     }
 
-    return {
-        ...manifest,
-        packPath: packPath,
-        osString: osString,
-    }
+    return manifest
 }

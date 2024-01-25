@@ -5,14 +5,14 @@ import ChildProcess from "node:child_process"
 import sendToRender from "../../utils/sendToRender"
 
 export default async (manifest, step) => {
-    const _path = path.resolve(manifest.packPath, step.path)
+    const _path = path.resolve(manifest.install_path, step.path)
 
-    console.log(`Pulling ${step.url}...`)
-
-    sendToRender(`installation:status`, {
-        ...manifest,
+    sendToRender(`pkg:update:status`, {
+        id: manifest.id,
         statusText: `Pulling ${step.url}`,
     })
+
+    console.log(`[${manifest.id}] steps.git_pull() | Pulling ${step.url}...`)
 
     fs.mkdirSync(_path, { recursive: true })
 

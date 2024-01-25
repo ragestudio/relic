@@ -13,9 +13,9 @@ import "./index.less"
 const PackageItem = (props) => {
     const [manifest, setManifest] = React.useState(props.manifest)
 
-    const isLoading = manifest.status === "installing" || manifest.status === "uninstalling" || manifest.status === "updating"
+    const isLoading = manifest.status === "installing" || manifest.status === "uninstalling" || manifest.status === "loading"
     const isInstalled = manifest.status === "installed"
-    const isFailed = manifest.status === "failed"
+    const isFailed = manifest.status === "error"
 
     const onClickUpdate = () => {
         antd.Modal.confirm({
@@ -28,7 +28,7 @@ const PackageItem = (props) => {
     }
 
     const onClickPlay = () => {
-        ipc.exec("pkg:exec", manifest.id)
+        ipc.exec("pkg:execute", manifest.id)
     }
 
     const onClickFolder = () => {
@@ -109,10 +109,10 @@ const PackageItem = (props) => {
     }
 
     React.useEffect(() => {
-        ipc.on(`installation:${manifest.id}:status`, handleUpdate)
+        ipc.on(`pkg:update:status:${manifest.id}`, handleUpdate)
 
         return () => {
-            ipc.off(`installation:${manifest.id}:status`, handleUpdate)
+            ipc.off(`pkg:update:status:${manifest.id}`, handleUpdate)
         }
     }, [])
 

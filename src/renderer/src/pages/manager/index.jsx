@@ -24,9 +24,9 @@ class InstallationsManager extends React.Component {
     }
 
     render() {
-        const { installations } = this.context
+        const { packages } = this.context
 
-        const empty = installations.length == 0
+        const empty = packages.length == 0
 
         return <div className="installations_manager">
             <antd.Button
@@ -39,11 +39,11 @@ class InstallationsManager extends React.Component {
 
             <div className={empty ? "installations_list empty" : "installations_list"}>
                 {
-                    empty && <antd.Empty description="No installations" />
+                    empty && <antd.Empty description="No packages installed" />
                 }
 
                 {
-                    installations.map((manifest) => {
+                    packages.map((manifest) => {
                         return <PackageItem key={manifest.id} manifest={manifest} />
                     })
                 }

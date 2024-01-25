@@ -38,6 +38,7 @@
     "human-format": "^1.2.0",
     "less": "^4.2.0",
     "lodash": "^4.17.21",
+    "lowdb": "^7.0.1",
     "node-7z": "^3.0.0",
     "open": "8.4.2",
     "progress-stream": "^2.0.0",
@@ -47,6 +48,7 @@
     "react-spinners": "^0.13.8",
     "request": "^2.88.2",
     "rimraf": "^5.0.5",
+    "steno": "^4.0.2",
     "unzipper": "^0.10.14",
     "uuid": "^9.0.1"
   },

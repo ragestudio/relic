@@ -7,18 +7,18 @@ export const Context = React.createContext([])
 
 export class WithContext extends React.Component {
     state = {
-        installations: [],
+        packages: [],
         pendingInstallation: false,
     }
 
     ipcEvents = {
-        "new:installation": (event, data) => {
+        "pkg:new": (event,data) => {
             antd.message.loading(`Installing ${data.id}`)
 
-            let newData = this.state.installations
+            let newData = this.state.packages
 
             // search if installation already exists
-            const prev = this.state.installations.findIndex((item) => item.id === data.id)
+            const prev = this.state.packages.findIndex((item) => item.id === data.id)
 
             if (prev !== -1) {
                 newData[prev] = data
@@ -27,15 +27,27 @@ export class WithContext extends React.Component {
             }
 
             this.setState({
-                installations: newData,
+                packages: newData,
             })
         },
-        "installation:status": (event, data) => {
-            console.log(`INSTALLATION STATUS: ${data.id} >`, data)
+        "pkg:remove": (event, data) => {
+            antd.message.success(`Successfully uninstalled ${data.id}`)
 
+            const index = this.state.packages.findIndex((item) => item.id === data.id)
+
+            if (index !== -1) {
+                this.setState({
+                    packages: [
+                        ...this.state.packages.slice(0, index),
+                        ...this.state.packages.slice(index + 1),
+                    ]
+                })
+            }
+        },
+        "pkg:update:status": (event, data) => {
             const { id } = data
 
-            let newData = this.state.installations
+            let newData = this.state.packages
 
             const index = newData.findIndex((item) => item.id === id)
 
@@ -46,50 +58,25 @@ export class WithContext extends React.Component {
                 }
 
                 this.setState({
-                    installations: newData
+                    packages: newData
                 })
             }
+
+            console.log(`[ipc] pkg:update:status >`, data)
         },
-        "installation:error": (event, data) => {
-            antd.notification.error({
-                message: `Failed to install ${data.id}`,
-                description: data.statusText
-            })
-
-            this.ipcEvents["installation:status"](event, data)
-        },
-        "installation:done": (event, data) => {
-            antd.message.success(`Successfully installed ${data.id}`)
-
-            this.ipcEvents["installation:status"](event, data)
-        },
-        "installation:uninstalled": (event, data) => {
-            antd.message.success(`Successfully uninstalled ${data.id}`)
-
-            const index = this.state.installations.findIndex((item) => item.id === data.id)
-
-            if (index !== -1) {
-                this.setState({
-                    installations: [
-                        ...this.state.installations.slice(0, index),
-                        ...this.state.installations.slice(index + 1),
-                    ]
-                })
-            }
-        }
     }
 
     componentDidMount = async () => {
-        const installations = await ipc.exec("get:installations")
+        const packages = await ipc.exec("pkg:list")
 
         for (const event in this.ipcEvents) {
             ipc.on(event, this.ipcEvents[event])
         }
 
         this.setState({
-            installations: [
-                ...this.state.installations,
-                ...installations,
+            packages: [
+                ...this.state.packages,
+                ...packages,
             ]
         })
     }
@@ -107,7 +94,7 @@ export class WithContext extends React.Component {
     render() {
         return <Context.Provider
             value={{
-                installations: this.state.installations,
+                packages: this.state.packages,
                 install: this.install
             }}
         >

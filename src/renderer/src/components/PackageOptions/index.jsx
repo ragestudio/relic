@@ -158,7 +158,7 @@ const PackageOptions = (props) => {
             props.close()
         }
 
-        ipc.exec("pkg:apply_changes", manifest.id, changes)
+        ipc.exec("pkg:apply", manifest.id, changes)
     }
 
     function handleChanges(field, key, value) {

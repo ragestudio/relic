@@ -6,7 +6,11 @@ export default {
     version: null,
     install_path: null,
     remote_url: null,
+    last_update: null,
+
     patches: [],
     applied_patches: [],
-    options: {},
+
+    configs: {},
+    storaged_configs: {}
 }

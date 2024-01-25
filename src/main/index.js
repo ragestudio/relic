@@ -12,8 +12,6 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils"
 import isDev from "electron-is-dev"
 import Store from "electron-store"
 
-import open from "open"
-
 import pkg from "../../package.json"
 
 import setup from "./setup"
@@ -35,29 +33,29 @@ class ElectronApp {
   }
 
   handlers = {
-    "get:installations": async () => {
-      return await this.pkgManager.getInstallations()
+    "pkg:list": async () => {
+      return await this.pkgManager.getInstalledPackages()
     },
     "pkg:read": async (event, manifest_url) => {
       return JSON.stringify(await readManifest(manifest_url))
     },
+    "pkg:install": async (event, manifest) => {
+      this.pkgManager.install(manifest)
+    },
     "pkg:update": (event, manifest_id) => {
       this.pkgManager.update(manifest_id)
     },
-    "pkg:exec": (event, manifest_id) => {
-      this.pkgManager.execute(manifest_id)
-    },
-    "pkg:install": async (event, manifest) => {
-      this.pkgManager.install(manifest)
+    "pkg:apply": (event, manifest_id, changes) => {
+      this.pkgManager.applyChanges(manifest_id, changes)
     },
     "pkg:uninstall": (event, manifest_id) => {
       this.pkgManager.uninstall(manifest_id)
     },
-    "pkg:open": (event, manifest_id) => {
-      this.pkgManager.openPackageFolder(manifest_id)
+    "pkg:execute": (event, manifest_id) => {
+      this.pkgManager.execute(manifest_id)
     },
-    "pkg:apply_changes": (event, manifest_id, changes) => {
-      this.pkgManager.applyChanges(manifest_id, changes)
+    "pkg:open": (event, manifest_id) => {
+      this.pkgManager.open(manifest_id)
     },
     "updater:check": () => {
       autoUpdater.checkForUpdates()
@@ -96,7 +94,7 @@ class ElectronApp {
 
   events = {
     "open-runtime-path": () => {
-      return open(this.pkgManager.runtimePath)
+      return this.pkgManager.openRuntimePath()
     },
   }
 
@@ -260,7 +258,9 @@ class ElectronApp {
 
     await this.createWindow()
 
-    await autoUpdater.checkForUpdates()
+    if (!isDev) {
+      await autoUpdater.checkForUpdates()
+    }
   }
 }
 

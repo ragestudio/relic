@@ -16,14 +16,14 @@ function convertSize(size) {
 }
 
 export default async (manifest, step) => {
-    let _path = path.resolve(manifest.packPath, step.path ?? ".")
+    let _path = path.resolve(manifest.install_path, step.path ?? ".")
 
-    console.log(`Downloading ${step.url} to ${_path}...`)
-
-    sendToRender(`installation:status`, {
-        ...manifest,
+    sendToRender(`pkg:update:status:${manifest.id}`, {
+        status: "loading",
         statusText: `Downloading ${step.url}`,
     })
+
+    console.log(`[${manifest.id}] steps.http() | Downloading ${step.url} to ${_path}`)
 
     if (step.tmp) {
         _path = path.resolve(TMP_PATH, String(new Date().getTime()))
@@ -48,8 +48,7 @@ export default async (manifest, step) => {
 
         let lastTransferred = 0
 
-        sendToRender(`installation:status`, {
-            ...manifest,
+        sendToRender(`pkg:update:status:${manifest.id}`, {
             statusText: `Starting download...`,
         })
 
@@ -64,8 +63,7 @@ export default async (manifest, step) => {
 
             lastTransferred = progress.transferred ?? 0
 
-            sendToRender(`installation:${manifest.id}:status`, {
-                ...manifest,
+            sendToRender(`pkg:update:status:${manifest.id}`, {
                 progress: progress,
                 statusText: `Downloaded ${convertSize(progress.transferred ?? 0)} / ${convertSize(progress.total)} | ${convertSize(progress.speed)}/s`,
             })
@@ -81,21 +79,19 @@ export default async (manifest, step) => {
 
     if (step.extract) {
         if (typeof step.extract === "string") {
-            step.extract = path.resolve(manifest.packPath, step.extract)
+            step.extract = path.resolve(manifest.install_path, step.extract)
         } else {
-            step.extract = path.resolve(manifest.packPath, ".")
+            step.extract = path.resolve(manifest.install_path, ".")
         }
 
-        sendToRender(`installation:status`, {
-            ...manifest,
+        sendToRender(`pkg:update:status:${manifest.id}`, {
             statusText: `Extracting bundle...`,
         })
 
         await extractFile(_path, step.extract)
 
         if (step.delete_after_extract) {
-            sendToRender(`installation:status`, {
-                ...manifest,
+            sendToRender(`pkg:update:status:${manifest.id}`, {
                 statusText: `Deleting temporal files...`,
             })
 

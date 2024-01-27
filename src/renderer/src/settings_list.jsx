@@ -80,7 +80,6 @@ export default [
         description: "Open the folder where all packages are stored.",
         icon: "MdFolder",
         type: "button",
-        type: "button",
         props: {
           children: "Open",
           onClick: () => {

@@ -121,6 +121,37 @@ const SettingItem = (props) => {
     </div>
 }
 
+const SettingsList = ({ settings }) => {
+    return settings.map((setting, index) => {
+        const isGroup = Array.isArray(setting.children)
+
+        if (isGroup) {
+            return <div
+                id={setting.id}
+                className="app_settings-list-group"
+            >
+                <div className="app_settings-list-group_label">
+                    {
+                        setting.icon && <Icon icon={setting.icon} />
+                    }
+                    <h1>
+                        {setting.name}
+                    </h1>
+                </div>
+
+                <SettingsList
+                    settings={setting.children}
+                />
+            </div>
+        }
+
+        return <SettingItem
+            key={index}
+            setting={setting}
+        />
+    })
+}
+
 const Settings = () => {
     return <div className="app_settings">
         <div className="app_settings-header">
@@ -140,19 +171,11 @@ const Settings = () => {
         </div>
 
         <div className="app_settings-list">
-            {
-                settingsList.map((setting, index) => {
-                    return <SettingItem
-                        key={index}
-                        setting={setting}
-                    />
-                })
-            }
+            <SettingsList
+                settings={settingsList}
+            />
         </div>
 
-        <div className="software_info">
-
-        </div>
     </div>
 }
 

@@ -81,21 +81,24 @@ class ElectronApp {
       await setup()
 
       // check if can decode google drive token
-      const googleDrive_enabled = !!await GoogleDriveAPI.readCredentials()
+      const googleDrive_enabled = !!(await GoogleDriveAPI.readCredentials())
 
       return {
         pkg: pkg,
         authorizedServices: {
-          drive: googleDrive_enabled,
-        },
+          drive: googleDrive_enabled
+        }
       }
-    },
+    }
   }
 
   events = {
     "open-runtime-path": () => {
       return this.pkgManager.openRuntimePath()
     },
+    "open-dev-logs": () => {
+      return
+    }
   }
 
   createWindow() {
@@ -146,7 +149,7 @@ class ElectronApp {
           }
           default: {
             return sendToRender("new:message", {
-              message: "Unrecognized URL action",
+              message: "Unrecognized URL action"
             })
           }
         }
@@ -227,12 +230,10 @@ class ElectronApp {
 
       ProtocolRegistry.register({
         protocol: protocolRegistryNamespace,
-        command: `"${process.execPath}" "${path.resolve(
-          process.argv[1]
-        )}" $_URL_`,
+        command: `"${process.execPath}" "${path.resolve(process.argv[1])}" $_URL_`,
         override: true,
         script: true,
-        terminal: false,
+        terminal: false
       })
     } else {
       if (!app.isDefaultProtocolClient(protocolRegistryNamespace)) {

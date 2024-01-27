@@ -47,12 +47,6 @@ const Header = (props) => {
                     onClick={() => app.location.push("/settings")}
                 />
 
-                <antd.Button
-                    size="small"
-                    icon={<Icons.MdFolder />}
-                    onClick={() => ipc.send("open-runtime-path")}
-                />
-
                 {
                     ctx.pkg && <antd.Tag>
                         v{ctx.pkg.version}

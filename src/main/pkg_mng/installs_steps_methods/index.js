@@ -2,12 +2,14 @@ import ISM_DRIVE_DL from "./drive"
 import ISM_HTTP from "./http"
 import ISM_GIT_CLONE from "./git_clone"
 import ISM_GIT_PULL from "./git_pull"
+import ISM_GIT_RESET from "./git_reset"
 
 const InstallationStepsMethods = {
     drive_dl: ISM_DRIVE_DL,
     http: ISM_HTTP,
     git_clone: ISM_GIT_CLONE,
     git_pull: ISM_GIT_PULL,
+    git_reset: ISM_GIT_RESET,
 }
 
 export default async function processGenericSteps(pkg, steps) {
@@ -39,6 +41,12 @@ export default async function processGenericSteps(pkg, steps) {
             case "git_pulls_steps": {
                 for await (const pull_step of stepValue) {
                     await InstallationStepsMethods.git_pull(pkg, pull_step)
+                }
+                break;
+            }
+            case "git_reset": {
+                for await (const reset_step of stepValue) {
+                    await InstallationStepsMethods.git_reset(pkg, reset_step)
                 }
                 break;
             }

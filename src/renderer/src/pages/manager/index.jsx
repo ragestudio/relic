@@ -29,13 +29,22 @@ class InstallationsManager extends React.Component {
         const empty = packages.length == 0
 
         return <div className="installations_manager">
-            <antd.Button
-                type="primary"
-                icon={<MdAdd />}
-                onClick={() => this.toggleDrawer(true)}
-            >
-                Add new installation
-            </antd.Button>
+            <div className="installations_manager-header">
+                <antd.Button
+                    type="primary"
+                    icon={<MdAdd />}
+                    onClick={() => this.toggleDrawer(true)}
+                >
+                    Add new installation
+                </antd.Button>
+
+                <antd.Input.Search
+                    variant="filled"
+                    placeholder="Search"
+                    onSearch={() => { }}
+                    disabled
+                />
+            </div>
 
             <div className={empty ? "installations_list empty" : "installations_list"}>
                 {

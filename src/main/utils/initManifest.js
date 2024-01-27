@@ -1,5 +1,6 @@
 import path from "node:path"
 import os from "node:os"
+import lodash from "lodash"
 
 import Vars from "../vars"
 import PublicLibs from "../public_libraries"
@@ -24,14 +25,12 @@ export default async (manifest = {}) => {
 
     if (typeof manifest.init === "function") {
         const init_result = await manifest.init({
+            manifest: manifest,
             install_path: install_path,
             os_string: os_string,
         })
 
-        manifest = {
-            ...manifest,
-            ...init_result,
-        }
+        manifest = lodash.merge(manifest, init_result)
 
         delete manifest.init
     }

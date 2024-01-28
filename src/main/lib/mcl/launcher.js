@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import {EventEmitter} from "events"
+import { EventEmitter } from "events"
 import child from "child_process"
 
 import Handler from "./handler"
@@ -215,6 +215,7 @@ export default class MCLCore extends EventEmitter {
   startMinecraft(launchArguments) {
     const minecraft = child.spawn(this.options.javaPath ? this.options.javaPath : 'java', launchArguments,
       { cwd: this.options.overrides.cwd || this.options.root, detached: this.options.overrides.detached })
+
     minecraft.stdout.on('data', (data) => this.emit('data', data.toString('utf-8')))
     minecraft.stderr.on('data', (data) => this.emit('data', data.toString('utf-8')))
     minecraft.on('close', (code) => this.emit('close', code))

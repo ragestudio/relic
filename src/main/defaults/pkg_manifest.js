@@ -8,6 +8,9 @@ export default {
     remote_url: null,
     last_update: null,
 
+    status: "pending",
+    statusText: "Pending...",
+
     patches: [],
     applied_patches: [],
 

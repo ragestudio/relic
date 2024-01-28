@@ -6,6 +6,7 @@ import GlobalStateContext from "contexts/global"
 
 import PackagesMangerPage from "pages/manager"
 import SettingsPage from "pages/settings"
+import PackageOptionsPage from "pages/pkg"
 
 const NavigationController = (props) => {
     if (!app.location) {
@@ -80,5 +81,6 @@ export const PageRender = () => {
     return <Routes>
         <Route exact path="/" element={<PackagesMangerPage />} />
         <Route exact path="/settings" element={<SettingsPage />} />
+        <Route exact path="/package/:pkg_id" element={<PackageOptionsPage />} />
     </Routes>
 }

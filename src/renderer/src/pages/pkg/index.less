@@ -1,3 +1,37 @@
+.package_options-wrapper {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    .package_options-wrapper-header {
+        display: flex;
+        flex-direction: row;
+
+        gap: 20px;
+
+        .package_options-wrapper-header-back {
+            display: flex;
+            flex-direction: row;
+
+            align-items: center;
+
+            gap: 10px;
+
+            svg {
+                color: var(--primary-color);
+                border: 1px solid var(--primary-color);
+
+                border-radius: 100%;
+
+                cursor: pointer;
+
+                font-size: 1.5rem;
+            }
+        }
+    }
+}
+
 .package_options {
     display: flex;
     flex-direction: column;
@@ -9,6 +43,8 @@
     .package_options-field {
         display: flex;
         flex-direction: column;
+
+        gap: 10px;
 
         .package_options-field-header {
             display: flex;
@@ -34,7 +70,10 @@
 
             padding: 10px;
 
-            gap: 5px;
+            gap: 15px;
+
+            background-color: var(--background-color-secondary);
+            border-radius: 12px;
         }
     }
 
@@ -51,6 +90,12 @@
         gap: 7px;
 
         font-size: 0.6rem;
+
+        background-color: var(--background-color-secondary);
+
+        padding: 7px;
+
+        border-radius: 12px;
 
         .package_options-info-item {
             display: flex;
@@ -103,6 +148,24 @@
             .ant-input-outlined {
                 border-color: #d6d6d6;
             }
+        }
+    }
+
+    .package_options-actions {
+        display: flex;
+        flex-direction: row;
+
+        gap: 10px;
+
+        // put the last button on the right
+        .ant-btn {
+            &:last-child {
+                margin-left: auto;
+            }
+        }
+
+        .ant-btn-default:not(.disabled) {
+            background-color: var(--background-color-secondary);
         }
     }
 }

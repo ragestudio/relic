@@ -6,8 +6,6 @@ import BarLoader from "react-spinners/BarLoader"
 
 import { MdFolder, MdDelete, MdPlayArrow, MdUpdate, MdOutlineMoreVert, MdSettings, MdInfoOutline } from "react-icons/md"
 
-import PackageOptions from "../PackageOptions"
-
 import "./index.less"
 
 const PackageItem = (props) => {
@@ -15,6 +13,7 @@ const PackageItem = (props) => {
 
     const isLoading = manifest.status === "installing" || manifest.status === "uninstalling" || manifest.status === "loading"
     const isInstalled = manifest.status === "installed"
+    const isInstalling = manifest.status === "installing"
     const isFailed = manifest.status === "error"
 
     const onClickUpdate = () => {
@@ -46,12 +45,15 @@ const PackageItem = (props) => {
     }
 
     const onClickOptions = () => {
-        app.modal.open(PackageOptions, {
-            manifest: manifest,
-            close: () => {
-                app.modal.close()
-            }
-        })
+        app.location.push(`/package/${manifest.id}`)
+    }
+
+    const onClickCancelInstall = () => {
+        ipc.exec("pkg:cancel_install", manifest.id)
+    }
+
+    const onClickRetryInstall = () => {
+        ipc.exec("pkg:retry_install", manifest.id)
     }
 
     function handleUpdate(event, data) {
@@ -148,6 +150,7 @@ const PackageItem = (props) => {
                 {
                     isFailed && <antd.Button
                         type="primary"
+                        onClick={onClickRetryInstall}
                     >
                         Retry
                     </antd.Button>
@@ -173,6 +176,15 @@ const PackageItem = (props) => {
                             type="primary"
                         />
                     </antd.Dropdown>
+                }
+
+                {
+                    isInstalling && <antd.Button
+                        type="primary"
+                        onClick={onClickCancelInstall}
+                    >
+                        Cancel
+                    </antd.Button>
                 }
             </div>
         </div>

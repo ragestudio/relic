@@ -1,6 +1,7 @@
 import React from "react"
 import * as antd from "antd"
-import { Icon } from "components/Icons"
+import { Icons, Icon } from "components/Icons"
+import { useParams } from "react-router-dom"
 
 import "./index.less"
 
@@ -26,8 +27,6 @@ const PKGConfigs = (props) => {
             No configuration available
         </p>
     }
-
-    console.log(defaultConfigs, configs)
 
     return Object.keys(defaultConfigs).map((key, index) => {
         const config = defaultConfigs[key]
@@ -173,6 +172,24 @@ const PackageOptions = (props) => {
         })
     }
 
+    function handleReinstall() {
+        antd.Modal.confirm({
+            title: "Reinstall",
+            content: "Are you sure you want to reinstall this package? Some data can be lost.",
+            onOk() {
+                const closeModal = props.onClose || props.close
+
+                if (closeModal) {
+                    closeModal()
+                } else {
+                    app.location.push("/")
+                }
+
+                ipc.exec("pkg:install", manifest)
+            },
+        })
+    }
+
     function canApplyChanges() {
         return Object.keys(changes).length > 0
     }
@@ -201,7 +218,7 @@ const PackageOptions = (props) => {
         }
 
         {
-            manifest.patches && <div className="package_options-field">
+            manifest.patches && manifest.patches.length > 0 && <div className="package_options-field">
                 <div className="package_options-field-header">
                     <p>Patches</p>
                 </div>
@@ -282,14 +299,64 @@ const PackageOptions = (props) => {
 
         <div className="package_options-actions">
             <antd.Button
+                onClick={handleReinstall}
+                icon={<Icons.MdReplay />}
+                type="default"
+            >
+                Reinstall
+            </antd.Button>
+
+            <antd.Button
+                disabled
+                icon={<Icons.MdCheck />}
+                type="default"
+            >
+                Verify
+            </antd.Button>
+
+            <antd.Button
                 type="primary"
                 onClick={applyChanges}
                 disabled={!canApplyChanges()}
             >
-                Apply
+                Apply Changes
             </antd.Button>
         </div>
     </div>
 }
 
-export default PackageOptions
+const PackageOptionsLoader = (props) => {
+    const { pkg_id } = useParams()
+    const [manifest, setManifest] = React.useState(null)
+
+    React.useEffect(() => {
+        ipc.exec("pkg:get", pkg_id).then((manifest) => {
+            console.log(manifest)
+            setManifest(manifest)
+        })
+    }, [pkg_id])
+
+    if (!manifest) {
+        return <antd.Skeleton active />
+    }
+
+    return <div className="package_options-wrapper">
+        <div className="package_options-wrapper-header">
+            <div className="package_options-wrapper-header-back">
+                <Icons.MdChevronLeft
+                    onClick={() => {
+                        app.location.push("/")
+                    }}
+                />
+                Back
+            </div>
+        </div>
+
+        <PackageOptions
+            manifest={manifest}
+            {...props}
+        />
+    </div>
+}
+
+export default PackageOptionsLoader

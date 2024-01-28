@@ -5,8 +5,9 @@ import ChildProcess from "node:child_process"
 import { pipeline as streamPipeline } from "node:stream/promises"
 
 import unzipper from "unzipper"
-
 import got from "got"
+
+import Vars from "./vars"
 
 function resolveDestBin(pre, post) {
     let url = null
@@ -25,14 +26,14 @@ function resolveDestBin(pre, post) {
 }
 
 async function main() {
-    const binariesPath = path.resolve(global.RUNTIME_PATH, "bin_lib")
+    const binariesPath = Vars.binaries_path
 
     if (!fs.existsSync(binariesPath)) {
         fs.mkdirSync(binariesPath, { recursive: true })
     }
 
-    let sevenzip_exec = path.resolve(binariesPath, "7z-bin", process.platform === "win32" ? "7za.exe" : "7za")
-    let git_exec = path.resolve(binariesPath, "git-bin", "bin", process.platform === "win32" ? "git.exe" : "git")
+    let sevenzip_exec = Vars.sevenzip_path
+    let git_exec = Vars.git_path
 
     if (!fs.existsSync(sevenzip_exec)) {
         global.win.webContents.send("initializing_text", "Downloading 7z binaries...")
@@ -79,9 +80,6 @@ async function main() {
             fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: binPath })).on("close", resolve).on("error", reject)
         })
     }
-
-    global.SEVENZIP_PATH = sevenzip_exec
-    global.GIT_PATH = git_exec
 
     console.log(`7z binaries: ${sevenzip_exec}`)
     console.log(`GIT binaries: ${git_exec}`)

@@ -36,6 +36,9 @@ class ElectronApp {
     "pkg:list": async () => {
       return await this.pkgManager.getInstalledPackages()
     },
+    "pkg:get": async (event, manifest_id) => {
+      return await this.pkgManager.getInstalledPackages(manifest_id)
+    },
     "pkg:read": async (event, manifest_url) => {
       return JSON.stringify(await readManifest(manifest_url))
     },
@@ -47,6 +50,19 @@ class ElectronApp {
     },
     "pkg:apply": (event, manifest_id, changes) => {
       this.pkgManager.applyChanges(manifest_id, changes)
+    },
+    "pkg:retry_install": async (event, manifest_id) => {
+      const pkg = await this.pkgManager.getInstalledPackages(manifest_id)
+
+      if (!pkg) {
+        return false
+      }
+
+      //await this.pkgManager.uninstall(manifest_id)
+      await this.pkgManager.install(pkg)
+    },
+    "pkg:cancel_install": (event, manifest_id) => {
+      this.pkgManager.uninstall(manifest_id)
     },
     "pkg:uninstall": (event, ...args) => {
       this.pkgManager.uninstall(...args)

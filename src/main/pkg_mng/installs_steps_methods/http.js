@@ -1,5 +1,7 @@
 import path from "node:path"
 import fs from "node:fs"
+import os from "node:os"
+
 import { pipeline as streamPipeline } from "node:stream/promises"
 
 import humanFormat from "human-format"
@@ -26,7 +28,7 @@ export default async (manifest, step) => {
     console.log(`[${manifest.id}] steps.http() | Downloading ${step.url} to ${_path}`)
 
     if (step.tmp) {
-        _path = path.resolve(TMP_PATH, String(new Date().getTime()))
+        _path = path.resolve(os.tmpdir(), String(new Date().getTime()), path.basename(step.url))
     }
 
     fs.mkdirSync(path.resolve(_path, ".."), { recursive: true })

@@ -4,6 +4,10 @@ import ChildProcess from "node:child_process"
 
 import sendToRender from "../../utils/sendToRender"
 
+import Vars from "../../vars"
+
+const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
+
 export default async (manifest, step) => {
     const _path = path.resolve(manifest.install_path, step.path)
 
@@ -17,7 +21,7 @@ export default async (manifest, step) => {
     fs.mkdirSync(_path, { recursive: true })
 
     await new Promise((resolve, reject) => {
-        const process = ChildProcess.exec(`${global.GIT_PATH ?? "git"} pull`, {
+        const process = ChildProcess.exec(`${gitCMD} pull`, {
             cwd: _path,
             shell: true,
         })

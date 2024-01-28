@@ -41,6 +41,12 @@ export default async function uninstall(pkg_id) {
 
     await rimraf(pkg.install_path)
 
+    sendToRender("pkg:update:status", {
+        id: pkg_id,
+        status: "uninstalling",
+        statusText: null,
+    })
+
     sendToRender("pkg:remove", {
         id: pkg_id
     })

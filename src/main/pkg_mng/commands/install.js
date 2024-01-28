@@ -39,7 +39,11 @@ export default async function install(manifest) {
     try {
         pkg = await initManifest(pkg)
 
-        fs.mkdirSync(pkg.install_path, { recursive: true })
+        if (fs.existsSync(pkg.install_path)) {
+            await fs.rmSync(pkg.install_path, { recursive: true })
+        }
+
+        await fs.mkdirSync(pkg.install_path, { recursive: true })
 
         // append to db
         await updateInstalledPackage(pkg)
@@ -47,7 +51,7 @@ export default async function install(manifest) {
         if (typeof pkg.before_install === "function") {
             sendToRender(`pkg:update:status`, {
                 id: pkg_id,
-                status: "loading",
+                status: "installing",
                 statusText: `Performing before_install hook...`,
             })
 
@@ -59,7 +63,7 @@ export default async function install(manifest) {
 
         sendToRender(`pkg:update:status`, {
             id: pkg_id,
-            status: "loading",
+            status: "installing",
             statusText: `Performing install steps...`,
         })
 
@@ -69,7 +73,7 @@ export default async function install(manifest) {
         if (typeof pkg.after_install === "function") {
             sendToRender(`pkg:update:status`, {
                 id: pkg_id,
-                status: "loading",
+                status: "installing",
                 statusText: `Performing after_install hook...`,
             })
 

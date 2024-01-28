@@ -10,15 +10,15 @@ import sendToRender from "../../utils/sendToRender"
 import processGenericSteps from "../installs_steps_methods"
 
 export default async function update(pkg_id) {
+    // find package manifest
+    let pkg = await getInstalledPackages(pkg_id)
+
+    if (!pkg) {
+        sendToRender("runtime:error", "Package not found")
+        return false
+    }
+
     try {
-        // find package manifest
-        let pkg = await getInstalledPackages(pkg_id)
-
-        if (!pkg) {
-            sendToRender("runtime:error", "Package not found")
-            return false
-        }
-
         // output to logs
         console.log(`[${pkg_id}] update() | Updating to latest version...`)
 

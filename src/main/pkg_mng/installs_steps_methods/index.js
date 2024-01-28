@@ -12,10 +12,23 @@ const InstallationStepsMethods = {
     git_reset: ISM_GIT_RESET,
 }
 
+const StepsOrders = [
+    "git_clones",
+    "git_clones_steps",
+    "git_pulls",
+    "git_update",
+    "git_pulls_steps",
+    "git_reset",
+    "drive_downloads",
+    "http_downloads",
+]
+
 export default async function processGenericSteps(pkg, steps) {
     console.log(`[${pkg.id}] steps() | Processing steps...`, steps)
 
-    for await (const [stepKey, stepValue] of Object.entries(steps)) {
+    const stepsEntries = Object.entries(steps)
+
+    for await (const [stepKey, stepValue] of stepsEntries) {
         switch (stepKey) {
             case "drive_downloads": {
                 for await (const dl_step of stepValue) {

@@ -26,7 +26,7 @@ const StepsOrders = [
 export default async function processGenericSteps(pkg, steps) {
     console.log(`[${pkg.id}] steps() | Processing steps...`, steps)
 
-    const stepsEntries = Object.entries(steps)
+    let stepsEntries = Object.entries(steps)
 
     stepsEntries = stepsEntries.sort((a, b) => StepsOrders.indexOf(a[0]) - StepsOrders.indexOf(b[0]))
 

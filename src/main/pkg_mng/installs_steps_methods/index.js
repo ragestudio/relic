@@ -28,6 +28,12 @@ export default async function processGenericSteps(pkg, steps) {
 
     const stepsEntries = Object.entries(steps)
 
+    stepsEntries = stepsEntries.sort((a, b) => StepsOrders.indexOf(a[0]) - StepsOrders.indexOf(b[0]))
+
+    if (stepsEntries.length === 0) {
+        return pkg
+    }
+
     for await (const [stepKey, stepValue] of stepsEntries) {
         switch (stepKey) {
             case "drive_downloads": {

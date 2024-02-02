@@ -32,8 +32,20 @@ const PKGConfigs = (props) => {
         const config = defaultConfigs[key]
         const storagedValue = configs[key]
 
+        const [localValue, setLocalValue] = React.useState(storagedValue ?? config.default)
+
         const ComponentType = config.ui_component ?? PKGConfigsComponentByTypes[config.type] ?? "input"
         const ConfigComponent = PKGConfigsComponents[ComponentType]
+
+        function handleOnChange(value) {
+            if (typeof value === "string" && config.string_trim === true) {
+                value = value.trim()
+            }
+
+            setLocalValue(value)
+
+            return props.onChange(key, value)
+        }
 
         if (ConfigComponent == null) {
             return null
@@ -42,33 +54,34 @@ const PKGConfigs = (props) => {
         const ComponentsProps = {
             ...config.ui_component_props,
             defaultValue: storagedValue ?? config.default,
+            value: localValue
         }
 
         switch (ComponentType) {
             case "input": {
                 ComponentsProps.onChange = (e) => {
-                    props.onChange(key, e.target.value)
+                    handleOnChange(e.target.value)
                 }
                 break
             }
 
             case "slider": {
                 ComponentsProps.onChange = (value) => {
-                    props.onChange(key, value)
+                    handleOnChange(value)
                 }
                 break
             }
 
             case "switch": {
                 ComponentsProps.onChange = (checked) => {
-                    props.onChange(key, checked)
+                    handleOnChange(checked)
                 }
                 break
             }
 
             default: {
                 ComponentsProps.onChange = (value) => {
-                    props.onChange(key, value)
+                    handleOnChange(value)
                 }
                 break;
             }

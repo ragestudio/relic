@@ -5,7 +5,9 @@ import "./index.less"
 
 const PackageUpdateAvailable = ({ update, close }) => {
     function handleUpdate() {
-        ipc.exec("pkg:update", update.manifest.id)
+        ipc.exec("pkg:update", update.manifest.id, {
+            execOnFinish: true
+        })
 
         close()
     }

@@ -45,8 +45,12 @@ class ElectronApp {
     "pkg:install": async (event, manifest) => {
       this.pkgManager.install(manifest)
     },
-    "pkg:update": (event, manifest_id) => {
-      this.pkgManager.update(manifest_id)
+    "pkg:update": async (event, manifest_id, { execOnFinish = false } = {}) => {
+      await this.pkgManager.update(manifest_id)
+
+      if(execOnFinish) {
+        await this.pkgManager.execute(manifest_id)
+      }
     },
     "pkg:apply": (event, manifest_id, changes) => {
       this.pkgManager.applyChanges(manifest_id, changes)

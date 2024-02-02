@@ -24,7 +24,7 @@ const Header = (props) => {
                     />
                 }
 
-                {
+                {/* {
                     ctx.updateText && <antd.Button
                         size="small"
                         icon={<Icons.MdRefresh />}
@@ -32,7 +32,7 @@ const Header = (props) => {
                     >
                         {ctx.updateText}
                     </antd.Button>
-                }
+                } */}
 
                 {
                     ctx.updateAvailable && <antd.Button

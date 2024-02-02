@@ -13,10 +13,10 @@ export default async (manifest, step) => {
 
     sendToRender(`pkg:update:status`, {
         id: manifest.id,
-        statusText: `Pulling ${step.url}`,
+        statusText: `Pulling...`,
     })
 
-    console.log(`[${manifest.id}] steps.git_pull() | Pulling ${step.url}...`)
+    console.log(`[${manifest.id}] steps.git_pull() | Pulling...`)
 
     fs.mkdirSync(_path, { recursive: true })
 

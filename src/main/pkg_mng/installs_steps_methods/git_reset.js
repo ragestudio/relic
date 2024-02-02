@@ -4,6 +4,7 @@ import { execa } from "../../lib/execa"
 
 import sendToRender from "../../utils/sendToRender"
 
+import git_pull from "./git_pull"
 import Vars from "../../vars"
 
 const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
@@ -47,6 +48,9 @@ export default async (manifest, step) => {
         id: manifest.id,
         statusText: `Reset from ${from}`,
     })
+
+    // pull the latest
+    await git_pull(manifest, step)
 
     console.log(`[${manifest.id}] steps.git_reset() | Reseting to ${from}`)
 

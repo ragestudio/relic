@@ -20,15 +20,25 @@ export default async (manifest, step) => {
         statusText: `Cloning ${step.url}`,
     })
 
-    console.log(`USING GIT BIN>`, gitCMD)
+    console.log(`USING GIT BIN >`, gitCMD)
 
     console.log(`[${manifest.id}] steps.git_clone() | Cloning ${step.url}...`)
 
-    const command = `${gitCMD} clone --depth ${step.depth ?? 1} --recurse-submodules --remote-submodules ${step.url} ${final_path}`
+    const command = [
+        gitCMD,
+        "clone",
+        //`--depth ${step.depth ?? 1}`,
+        //"--filter=blob:none",
+        //"--filter=tree:0",
+        "--recurse-submodules",
+        "--remote-submodules",
+        step.url,
+        final_path,
+    ]
 
     await new Promise((resolve, reject) => {
         ChildProcess.exec(
-            command,
+            command.join(" "),
             {
                 shell: true,
                 cwd: final_path,
@@ -36,11 +46,11 @@ export default async (manifest, step) => {
             (error, out) => {
                 if (error) {
                     console.error(error)
-                    reject(error)
-                } else {
-                    console.log(out)
-                    resolve()
+                    return reject(error)
                 }
+
+                console.log(out)
+                return resolve()
             }
         )
     })

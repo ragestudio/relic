@@ -21,12 +21,22 @@ export default async (manifest, step) => {
     fs.mkdirSync(_path, { recursive: true })
 
     await new Promise((resolve, reject) => {
-        const process = ChildProcess.exec(`${gitCMD} pull`, {
-            cwd: _path,
-            shell: true,
-        })
+        ChildProcess.exec(
+            `${gitCMD} pull`,
+            {
+                cwd: _path,
+                shell: true,
+            },
+            (error, out) => {
+                if (error) {
+                    console.error(error)
+                    return reject(error)
+                }
 
-        process.on("exit", resolve)
-        process.on("error", reject)
+                console.log(out)
+
+                return resolve()
+            }
+        )
     })
 }

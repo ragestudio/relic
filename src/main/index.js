@@ -264,17 +264,20 @@ class ElectronApp {
     if (!isDev) {
       autoUpdater.on("update-available", (ev, info) => {
         console.log(info)
+        sendToRender("app:checking_update_downloading", info)
       })
 
       autoUpdater.on("error", (ev, err) => {
         console.error(err)
+        sendToRender("app:checking_update_error")
       })
 
       autoUpdater.on("update-downloaded", (ev, info) => {
         console.log(info)
-
         sendToRender("app:update_available", info)
       })
+
+      sendToRender("app:checking_update")
 
       await autoUpdater.checkForUpdates()
     }

@@ -52,7 +52,9 @@ class App extends React.Component {
     loading: true,
     pkg: null,
     initializing: false,
+
     updateAvailable: false,
+    updateText: null,
 
     authorizedServices: {
       drive: false,
@@ -110,7 +112,22 @@ class App extends React.Component {
       })
 
       message.success("Google Drive API unauthorized")
-    }
+    },
+    "app:checking_update_downloading": (event, data) => {
+      this.setState({
+        updateText: "Downloading update..."
+      })
+    },
+    "app:checking_update": (event, data) => {
+      this.setState({
+        updateText: "Checking for updates..."
+      })
+    },
+    "app:checking_update_error": (event, data) => {
+      this.setState({
+        updateText: null
+      })
+    },
   }
 
   onUpdateAvailable = () => {

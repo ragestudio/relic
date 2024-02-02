@@ -25,6 +25,16 @@ const Header = (props) => {
                 }
 
                 {
+                    ctx.updateText && <antd.Button
+                        size="small"
+                        icon={<Icons.MdRefresh />}
+                        disabled
+                    >
+                        {ctx.updateText}
+                    </antd.Button>
+                }
+
+                {
                     ctx.updateAvailable && <antd.Button
                         size="small"
                         icon={<Icons.MdDownload />}

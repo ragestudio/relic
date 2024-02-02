@@ -7,9 +7,9 @@ import sendToRender from "../../utils/sendToRender"
 import git_pull from "./git_pull"
 import Vars from "../../vars"
 
-const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
-
 export default async (manifest, step) => {
+    const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
+
     const _path = path.resolve(manifest.install_path, step.path)
     const from = step.from ?? "HEAD"
 

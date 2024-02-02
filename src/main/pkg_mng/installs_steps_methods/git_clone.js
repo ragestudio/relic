@@ -6,9 +6,8 @@ import { execa } from "../../lib/execa"
 import sendToRender from "../../utils/sendToRender"
 import Vars from "../../vars"
 
-const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
-
 export default async (manifest, step) => {
+    const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
     const final_path = upath.normalizeSafe(path.resolve(manifest.install_path, step.path))
 
     if (!fs.existsSync(final_path)) {

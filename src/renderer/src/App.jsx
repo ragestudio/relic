@@ -7,6 +7,7 @@ import getRootCssVar from "utils/getRootCssVar"
 
 import ManifestInfo from "components/ManifestInfo"
 import PackageUpdateAvailable from "components/PackageUpdateAvailable"
+import InstallConfigAsk from "components/InstallConfigAsk"
 
 import AppLayout from "layout"
 import AppModalDialog from "layout/components/ModalDialog"
@@ -37,6 +38,14 @@ window.app = {
   pkgUpdateAvailable: (update_data) => {
     app.modal.open(PackageUpdateAvailable, {
       update: update_data,
+      close: () => {
+        app.modal.close()
+      }
+    })
+  },
+  pkgInstallWizard: (manifest) => {
+    app.modal.open(InstallConfigAsk, {
+      manifest: manifest,
       close: () => {
         app.modal.close()
       }
@@ -83,6 +92,9 @@ class App extends React.Component {
     },
     "app:update_available": (event, data) => {
       this.onUpdateAvailable(data)
+    },
+    "pkg:install:ask": (event, data) => {
+      app.pkgInstallWizard(data)
     },
     "pkg:update_available": (event, data) => {
       app.pkgUpdateAvailable(data)

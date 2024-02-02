@@ -22,12 +22,6 @@ export default async function apply(pkg_id, changes) {
 
     console.log(`[${pkg_id}] apply() | Applying changes... >`, changes)
 
-    sendToRender(`pkg:update:status`, {
-        id: pkg_id,
-        status: "loading",
-        statusText: "Applying changes...",
-    })
-
     if (Array.isArray(changes.patches)) {
         if (!Array.isArray(pkg.applied_patches)) {
             pkg.applied_patches = []
@@ -70,6 +64,12 @@ export default async function apply(pkg_id, changes) {
             pkg.applied_patches = pkg.applied_patches.filter((p) => {
                 return p !== patch.id
             })
+
+            sendToRender(`pkg:update:status`, {
+                id: pkg_id,
+                status: "done",
+                statusText: `Patch [${patch.id}] removed!`,
+            })
         }
 
         for await (let patch of installPatches) {
@@ -100,6 +100,12 @@ export default async function apply(pkg_id, changes) {
 
             // add to applied patches
             pkg.applied_patches.push(patch.id)
+
+            sendToRender(`pkg:update:status`, {
+                id: pkg_id,
+                status: "done",
+                statusText: `Patch [${patch.id}] applied!`,
+            })
         }
     }
 
@@ -115,8 +121,6 @@ export default async function apply(pkg_id, changes) {
         }
     }
 
-    pkg.status = "installed"
-
     await updateInstalledPackage(pkg)
 
     sendToRender(`new:notification`, {
@@ -126,7 +130,6 @@ export default async function apply(pkg_id, changes) {
 
     sendToRender(`pkg:update:status`, {
         ...pkg,
-        status: "installed",
         statusText: "Changes applied!",
     })
 

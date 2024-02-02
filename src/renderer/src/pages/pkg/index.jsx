@@ -3,21 +3,9 @@ import * as antd from "antd"
 import { Icons, Icon } from "components/Icons"
 import { useParams } from "react-router-dom"
 
+import PKGConfigItem from "components/PackageConfigItem"
+
 import "./index.less"
-
-const PKGConfigsComponents = {
-    switch: antd.Switch,
-    button: antd.Button,
-    input: antd.Input,
-    slider: antd.Slider,
-}
-
-const PKGConfigsComponentByTypes = {
-    string: "input",
-    action: "button",
-    bool: "switch",
-    number: "slider",
-}
 
 const PKGConfigs = (props) => {
     const { defaultConfigs = {}, configs = {} } = props
@@ -30,93 +18,15 @@ const PKGConfigs = (props) => {
 
     return Object.keys(defaultConfigs).map((key, index) => {
         const config = defaultConfigs[key]
-        const storagedValue = configs[key]
 
-        const [localValue, setLocalValue] = React.useState(storagedValue ?? config.default)
+        config.id = key
 
-        const ComponentType = config.ui_component ?? PKGConfigsComponentByTypes[config.type] ?? "input"
-        const ConfigComponent = PKGConfigsComponents[ComponentType]
-
-        function handleOnChange(value) {
-            if (typeof value === "string" && config.string_trim === true) {
-                value = value.trim()
-            }
-
-            setLocalValue(value)
-
-            return props.onChange(key, value)
-        }
-
-        if (ConfigComponent == null) {
-            return null
-        }
-
-        const ComponentsProps = {
-            ...config.ui_component_props,
-            defaultValue: storagedValue ?? config.default,
-            value: localValue
-        }
-
-        switch (ComponentType) {
-            case "input": {
-                ComponentsProps.onChange = (e) => {
-                    handleOnChange(e.target.value)
-                }
-                break
-            }
-
-            case "slider": {
-                ComponentsProps.onChange = (value) => {
-                    handleOnChange(value)
-                }
-                break
-            }
-
-            case "switch": {
-                ComponentsProps.onChange = (checked) => {
-                    handleOnChange(checked)
-                }
-                break
-            }
-
-            default: {
-                ComponentsProps.onChange = (value) => {
-                    handleOnChange(value)
-                }
-                break;
-            }
-        }
-
-        return <div
+        return <PKGConfigItem
             key={index}
-            id={key}
-            className="package_configs-option"
-        >
-            <div className="package_configs-option-header">
-                <span className="package_configs-option-label">
-                    {
-                        config.icon && <Icon
-                            icon={config.icon}
-                        />
-                    }
-                    {
-                        config.label ?? key
-                    }
-                </span>
-
-                {
-                    config.description && <p className="package_configs-option-description">
-                        {key}
-                    </p>
-                }
-            </div>
-
-            <div className="package_configs-option-content">
-                {
-                    React.createElement(ConfigComponent, ComponentsProps)
-                }
-            </div>
-        </div>
+            storagedValue={configs[key]}
+            config={config}
+            onChange={props.onChange}
+        />
     })
 }
 
@@ -315,17 +225,32 @@ const PackageOptions = (props) => {
                 onClick={handleReinstall}
                 icon={<Icons.MdReplay />}
                 type="default"
+                size="small"
             >
                 Reinstall
             </antd.Button>
 
-            <antd.Button
+            {/* <antd.Button
                 disabled
                 icon={<Icons.MdCheck />}
                 type="default"
+                size="small"
             >
                 Verify
-            </antd.Button>
+            </antd.Button> */}
+
+            {
+                manifest.install_ask_configs && <antd.Button
+                    onClick={() => {
+                        app.pkgInstallWizard(manifest)
+                    }}
+                    icon={<Icons.MdSettings />}
+                    type="default"
+                    size="small"
+                >
+                    Wizard
+                </antd.Button>
+            }
 
             <antd.Button
                 type="primary"

@@ -170,10 +170,12 @@ const PackageItem = (props) => {
                 {
                     isInstalled && !manifest.executable && <antd.Dropdown
                         menu={MenuProps}
+                        disabled={isLoading}
                     >
                         <antd.Button
                             icon={<MdOutlineMoreVert />}
                             type="primary"
+                            disabled={isLoading}
                         />
                     </antd.Dropdown>
                 }

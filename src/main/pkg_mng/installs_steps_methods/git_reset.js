@@ -1,6 +1,6 @@
 import path from "node:path"
 import fs from "node:fs"
-import ChildProcess from "node:child_process"
+import { execa } from "../../lib/execa"
 
 import sendToRender from "../../utils/sendToRender"
 
@@ -21,26 +21,13 @@ export default async (manifest, step) => {
         statusText: `Fetching from origin...`,
     })
 
-    console.log(`[${manifest.id}] steps.git_reset() | Fetching from origin...`)
+    console.log(`[${manifest.id}] steps.git_reset() | Fetching from origin`)
 
     // fetch from origin
-    await new Promise((resolve, reject) => {
-        ChildProcess.exec(
-            `${gitCMD} fetch origin`,
-            {
-                cwd: _path,
-                shell: true,
-            },
-            (error, out) => {
-                if (error) {
-                    console.error(error)
-                    return reject(error)
-                }
-
-                console.log(out)
-                return resolve()
-            }
-        )
+    await execa(gitCMD, ["fetch", "origin"], {
+        cwd: _path,
+        stdout: "inherit",
+        stderr: "inherit",
     })
 
     sendToRender(`pkg:update:status`, {
@@ -48,26 +35,12 @@ export default async (manifest, step) => {
         statusText: `Cleaning untracked files...`,
     })
 
-    console.log(`[${manifest.id}] steps.git_reset() | Cleaning...`)
+    console.log(`[${manifest.id}] steps.git_reset() | Cleaning`)
 
-    await new Promise((resolve, reject) => {
-        ChildProcess.exec(
-            `${gitCMD} clean -df`,
-            {
-                cwd: _path,
-                shell: true,
-            },
-            (error, out) => {
-                if (error) {
-                    console.error(error)
-                    return reject(error)
-                }
-
-                console.log(out)
-
-                return resolve()
-            }
-        )
+    await execa(gitCMD, ["clean", "-df"], {
+        cwd: _path,
+        stdout: "inherit",
+        stderr: "inherit",
     })
 
     sendToRender(`pkg:update:status`, {
@@ -75,25 +48,26 @@ export default async (manifest, step) => {
         statusText: `Reset from ${from}`,
     })
 
-    console.log(`[${manifest.id}] steps.git_reset() | Reseting to ${from}...`)
+    console.log(`[${manifest.id}] steps.git_reset() | Reseting to ${from}`)
 
-    await new Promise((resolve, reject) => {
-        ChildProcess.exec(
-            `${gitCMD} reset --hard ${from}`,
-            {
-                cwd: _path,
-                shell: true,
-            },
-            (error, out) => {
-                if (error) {
-                    console.error(error)
-                    return reject(error)
-                }
-
-                console.log(out)
-
-                return resolve()
-            }
-        )
+    await execa(gitCMD, ["reset", "--hard", from], {
+        cwd: _path,
+        stdout: "inherit",
+        stderr: "inherit",
     })
+
+    sendToRender(`pkg:update:status`, {
+        id: manifest.id,
+        statusText: `Checkout to HEAD`,
+    })
+
+    console.log(`[${manifest.id}] steps.git_reset() | Checkout to head`)
+
+    await execa(gitCMD, ["checkout", "HEAD"], {
+        cwd: _path,
+        stdout: "inherit",
+        stderr: "inherit",
+    })
+
+    return manifest
 }

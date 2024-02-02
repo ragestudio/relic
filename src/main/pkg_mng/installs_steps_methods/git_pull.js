@@ -1,6 +1,6 @@
 import path from "node:path"
 import fs from "node:fs"
-import ChildProcess from "node:child_process"
+import { execa } from "../../lib/execa"
 
 import sendToRender from "../../utils/sendToRender"
 
@@ -20,23 +20,11 @@ export default async (manifest, step) => {
 
     fs.mkdirSync(_path, { recursive: true })
 
-    await new Promise((resolve, reject) => {
-        ChildProcess.exec(
-            `${gitCMD} pull`,
-            {
-                cwd: _path,
-                shell: true,
-            },
-            (error, out) => {
-                if (error) {
-                    console.error(error)
-                    return reject(error)
-                }
-
-                console.log(out)
-
-                return resolve()
-            }
-        )
+    await execa(gitCMD, ["pull"], {
+        cwd: _path,
+        stdout: "inherit",
+        stderr: "inherit",
     })
+
+    return manifest
 }

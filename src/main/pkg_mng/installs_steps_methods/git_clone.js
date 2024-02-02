@@ -1,7 +1,7 @@
 import path from "node:path"
 import fs from "node:fs"
-import ChildProcess from "node:child_process"
 import upath from "upath"
+import { execa } from "../../lib/execa"
 
 import sendToRender from "../../utils/sendToRender"
 import Vars from "../../vars"
@@ -24,8 +24,7 @@ export default async (manifest, step) => {
 
     console.log(`[${manifest.id}] steps.git_clone() | Cloning ${step.url}...`)
 
-    const command = [
-        gitCMD,
+    const args = [
         "clone",
         //`--depth ${step.depth ?? 1}`,
         //"--filter=blob:none",
@@ -36,23 +35,10 @@ export default async (manifest, step) => {
         final_path,
     ]
 
-    await new Promise((resolve, reject) => {
-        ChildProcess.exec(
-            command.join(" "),
-            {
-                shell: true,
-                cwd: final_path,
-            },
-            (error, out) => {
-                if (error) {
-                    console.error(error)
-                    return reject(error)
-                }
-
-                console.log(out)
-                return resolve()
-            }
-        )
+    await execa(gitCMD, args, {
+        cwd: final_path,
+        stdout: "inherit",
+        stderr: "inherit",
     })
 
     return manifest

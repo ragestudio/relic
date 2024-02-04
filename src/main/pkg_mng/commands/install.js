@@ -98,9 +98,9 @@ export default async function install(manifest) {
             })
         }
 
-        if (Array.isArray(pkg.install_ask_configs)) {
-            sendToRender("pkg:install:ask", pkg)
-        }
+        // if (Array.isArray(pkg.install_ask_configs)) {
+        //     sendToRender("pkg:install:ask", pkg)
+        // }
 
         sendToRender(`pkg:update:status`, {
             id: pkg_id,

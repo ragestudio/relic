@@ -19,7 +19,7 @@ export default async (manifest, step) => {
 
     fs.mkdirSync(_path, { recursive: true })
 
-    await execa(gitCMD, ["pull"], {
+    await execa(gitCMD, ["pull", "--rebase"], {
         cwd: _path,
         stdout: "inherit",
         stderr: "inherit",

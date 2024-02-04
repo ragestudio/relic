@@ -49,16 +49,16 @@ export default async (manifest, step) => {
         statusText: `Reset from ${from}`,
     })
 
-    // pull the latest
-    await git_pull(manifest, step)
-
-    console.log(`[${manifest.id}] steps.git_reset() | Reseting to ${from}`)
+    console.log(`[${manifest.id}] steps.git_reset() | Resetting to ${from}`)
 
     await execa(gitCMD, ["reset", "--hard", from], {
         cwd: _path,
         stdout: "inherit",
         stderr: "inherit",
     })
+
+    // pull the latest
+    await git_pull(manifest, step)
 
     sendToRender(`pkg:update:status`, {
         id: manifest.id,

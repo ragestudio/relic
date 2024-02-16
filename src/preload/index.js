@@ -18,6 +18,14 @@ const api = {
   },
 }
 
+const versions = {
+  electron: process.versions.electron,
+  chrome: process.versions.chrome,
+  node: process.versions.node,
+  v8: process.versions.v8,
+  uv: process.versions.uv
+}
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld(
@@ -39,12 +47,13 @@ if (process.contextIsolated) {
     )
 
     contextBridge.exposeInMainWorld("electron", electronAPI)
-
     contextBridge.exposeInMainWorld("api", api)
+    contextBridge.exposeInMainWorld("versions", versions)
   } catch (error) {
     console.error(error)
   }
 } else {
   window.electron = electronAPI
   window.api = api
+  window.versions = versions
 }

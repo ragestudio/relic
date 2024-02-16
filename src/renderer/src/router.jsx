@@ -1,17 +1,52 @@
 import React from "react"
 import BarLoader from "react-spinners/BarLoader"
-import { HashRouter, Route, Routes, useNavigate } from "react-router-dom"
+import { Skeleton } from "antd"
+
+import { HashRouter, Route, Routes, useNavigate, useParams } from "react-router-dom"
+import loadable from "@loadable/component"
 
 import GlobalStateContext from "contexts/global"
 
-import PackagesMangerPage from "pages/manager"
-import SettingsPage from "pages/settings"
-import PackageOptionsPage from "pages/pkg"
+const DefaultNotFoundRender = () => {
+    return <div>Not found</div>
+}
+
+const DefaultLoadingRender = () => {
+    return <Skeleton active />
+}
+
+const BuildPageController = (route, element, bindProps) => {
+    return React.createElement((props) => {
+        const params = useParams()
+        const url = new URL(window.location)
+        const query = new Proxy(url, {
+            get: (target, prop) => target.searchParams.get(prop),
+        })
+
+        route = route.replace(/\?.+$/, "").replace(/\/{2,}/g, "/")
+        route = route.replace(/\/$/, "")
+
+        return React.createElement(
+            loadable(element, {
+                fallback: React.createElement(DefaultLoadingRender),
+            }),
+            {
+                ...props,
+                ...bindProps,
+                url: url,
+                params: params,
+                query: query,
+            },
+        )
+    })
+}
 
 const NavigationController = (props) => {
     if (!app.location) {
         app.location = Object()
     }
+
+    const [initialized, setInitialized] = React.useState(false)
 
     const navigate = useNavigate()
 
@@ -19,35 +54,58 @@ const NavigationController = (props) => {
         // clean double slashes
         to = to.replace(/\/{2,}/g, "/")
 
-        // if state is a number, it's a delay
         if (typeof state !== "object") {
             state = {}
         }
 
+        for (const listener of app.location.listeners) {
+            if (typeof listener === "function") {
+                listener(to, state)
+            }
+        }
+
+        app.location.path = to
+
         app.location.last = window.location
 
-        return navigate(to, {
-            state
+        document.startViewTransition(() => {
+            navigate(to, {
+                state
+            })
         })
     }
 
     async function backLocation() {
-        app.location.last = window.location
+        return setLocation(app.location.last.pathname + app.location.last.search, app.location.last.state)
+    }
 
-        if (transitionDuration >= 100) {
-            await new Promise((resolve) => setTimeout(resolve, transitionDuration))
-        }
+    function pushToListeners(listener) {
+        app.location.listeners.push(listener)
+    }
 
-        return window.history.back()
+    function removeFromListeners(listener) {
+        app.location.listeners = app.location.listeners.filter((item) => {
+            return item !== listener
+        })
     }
 
     React.useEffect(() => {
         app.location = {
             last: window.location,
+            path: "/",
+            listeners: [],
+            listen: pushToListeners,
+            unlisten: removeFromListeners,
             push: setLocation,
             back: backLocation,
         }
+
+        setInitialized(true)
     }, [])
+
+    if (!initialized) {
+        return <Skeleton />
+    }
 
     return props.children
 }
@@ -60,7 +118,31 @@ export const InternalRouter = (props) => {
     </HashRouter>
 }
 
-export const PageRender = () => {
+export const PageRender = (props) => {
+    const routes = React.useMemo(() => {
+        let paths = {
+            ...import.meta.glob("/src/pages/**/[a-z[]*.jsx"),
+            ...import.meta.glob("/src/pages/**/[a-z[]*.tsx"),
+        }
+
+        paths = Object.keys(paths).map((route) => {
+            let path = route
+                .replace(/\/src\/pages|index|\.jsx$/g, "")
+                .replace(/\/src\/pages|index|\.tsx$/g, "")
+                .replace(/\/src\/pages|index|\.mobile|\.jsx$/g, "")
+                .replace(/\/src\/pages|index|\.mobile|\.tsx$/g, "")
+
+            path = path.replace(/\[\.{3}.+\]/, "*").replace(/\[(.+)\]/, ":$1")
+
+            return {
+                path,
+                element: paths[route],
+            }
+        })
+
+        return paths
+    }, [])
+
     const globalState = React.useContext(GlobalStateContext)
 
     if (globalState.initializing_text && globalState.loading) {
@@ -79,8 +161,20 @@ export const PageRender = () => {
     }
 
     return <Routes>
-        <Route exact path="/" element={<PackagesMangerPage />} />
-        <Route exact path="/settings" element={<SettingsPage />} />
-        <Route exact path="/package/:pkg_id" element={<PackageOptionsPage />} />
+        {
+            routes.map((route, index) => {
+                return <Route
+                    key={index}
+                    path={route.path}
+                    element={BuildPageController(route.path, route.element, props)}
+                    exact
+                />
+            })
+        }
+
+        <Route
+            path="*"
+            element={React.createElement(DefaultNotFoundRender)}
+        />
     </Routes>
 }

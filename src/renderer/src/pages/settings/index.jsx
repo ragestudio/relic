@@ -154,28 +154,11 @@ const SettingsList = ({ settings }) => {
 
 const Settings = () => {
     return <div className="app_settings">
-        <div className="app_settings-header">
-            <div className="app_settings-header-back">
-                <Icons.MdChevronLeft
-                    onClick={() => {
-                        app.location.push("/")
-                    }}
-                />
-                Back
-            </div>
-
-            <div className="app_settings-header-title">
-                <Icons.MdSettings />
-                <h1>Settings</h1>
-            </div>
-        </div>
-
         <div className="app_settings-list">
             <SettingsList
                 settings={settingsList}
             />
         </div>
-
     </div>
 }
 

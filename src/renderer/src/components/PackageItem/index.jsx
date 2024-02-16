@@ -45,7 +45,7 @@ const PackageItem = (props) => {
     }
 
     const onClickOptions = () => {
-        app.location.push(`/package/${manifest.id}`)
+        app.location.push(`/pkg/${manifest.id}`)
     }
 
     const onClickCancelInstall = () => {

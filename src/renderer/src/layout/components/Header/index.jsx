@@ -2,69 +2,122 @@ import React from "react"
 import * as antd from "antd"
 import { Icons } from "components/Icons"
 
+import PathsDecorators from "config/paths_decorators"
+
 import GlobalStateContext from "contexts/global"
 
 import Icon from "../../../../assets/icon"
 
+import "./index.less"
+
 const Header = (props) => {
     const ctx = React.useContext(GlobalStateContext)
 
-    return <antd.Layout.Header className="app_header">
-        <div className="branding" onClick={() => app.location.push("/")}>
-            <Icon />
-        </div>
+    const [decorator, setDecorator] = React.useState({})
+    const [navMode, setNavMode] = React.useState(false)
 
-        {
-            !ctx.loading && <div className="menu">
-                {
-                    ctx.authorizedServices?.drive && <Icons.SiGoogledrive
-                        style={{
-                            color: `var(--primary-color)`,
-                        }}
-                    />
-                }
+    function onChangeAppLocation(_path, state) {
+        const isNavigable = _path !== "/"
 
-                {/* {
-                    ctx.updateText && <antd.Button
-                        size="small"
-                        icon={<Icons.MdRefresh />}
-                        disabled
-                    >
-                        {ctx.updateText}
-                    </antd.Button>
-                } */}
+        const decorator = PathsDecorators.find((route) => {
+            const routePath = route.path.replace(/\*/g, ".*").replace(/!/g, "^")
 
-                {
-                    ctx.updateAvailable && <antd.Button
-                        size="small"
-                        icon={<Icons.MdDownload />}
-                        onClick={app.applyUpdate}
-                        type="primary"
-                    >
-                        Update now
-                    </antd.Button>
-                }
+            return new RegExp(routePath).test(_path)
+        })
 
-                <antd.Button
-                    size="small"
-                    icon={<Icons.MdHome />}
-                    onClick={() => app.location.push("/")}
-                />
+        document.startViewTransition(() => {
+            setDecorator({})
+            setNavMode(isNavigable)
 
-                <antd.Button
-                    size="small"
-                    icon={<Icons.MdSettings />}
-                    onClick={() => app.location.push("/settings")}
-                />
+            if (decorator) {
+                setDecorator(decorator)
+            }
+        })
+    }
 
-                {
-                    ctx.pkg && <antd.Tag>
-                        v{ctx.pkg.version}
-                    </antd.Tag>
-                }
-            </div>
+    React.useEffect(() => {
+        app.location.listen(onChangeAppLocation)
+
+        return () => {
+            app.location.unlisten(onChangeAppLocation)
         }
-    </antd.Layout.Header>
+    }, [])
+
+    return <div className="app_header_wrapper">
+        <antd.Layout.Header className="app_header">
+            {
+                !navMode && <>
+                    <div className="branding" onClick={() => app.location.push("/")}>
+                        <Icon />
+                    </div>
+
+                    {
+                        !ctx.loading && <div className="menu">
+                            {
+                                ctx.authorizedServices?.drive && <Icons.SiGoogledrive
+                                    style={{
+                                        color: `var(--primary-color)`,
+                                    }}
+                                />
+                            }
+
+                            {
+                                ctx.updateAvailable && <antd.Button
+                                    size="small"
+                                    icon={<Icons.MdDownload />}
+                                    onClick={app.applyUpdate}
+                                    type="primary"
+                                >
+                                    Update now
+                                </antd.Button>
+                            }
+
+                            <antd.Button
+                                size="small"
+                                icon={<Icons.MdHome />}
+                                onClick={() => app.location.push("/")}
+                            />
+
+                            <antd.Button
+                                size="small"
+                                icon={<Icons.MdSettings />}
+                                onClick={() => app.location.push("/settings")}
+                            />
+
+                            {
+                                ctx.pkg && <antd.Tag>
+                                    v{ctx.pkg.version}
+                                </antd.Tag>
+                            }
+                        </div>
+                    }
+                </>
+            }
+
+            {
+                navMode && <div className="app_header_nav">
+                    <div className="app_header_nav_back">
+                        <Icons.MdChevronLeft
+                            onClick={() => {
+                                app.location.back()
+                            }}
+                        />
+                    </div>
+
+                    <div
+                        className="app_header_nav_title"
+                    >
+                        <h1>
+                            {
+                                decorator.label
+                            }
+                        </h1>
+                    </div>
+                </div>
+            }
+
+        </antd.Layout.Header>
+    </div>
 }
 
 export default Header

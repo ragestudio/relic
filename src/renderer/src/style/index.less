@@ -10,6 +10,9 @@
     --primary-color: @var-primary-color;
     --text-color: @var-text-color;
     --border-color: @var-border-color;
+
+    --app_header_height: @var-app_header_height;
+    --app_global_padding: @var-app_global_padding;
 }
 
 html,
@@ -45,47 +48,6 @@ body {
     height: 100%;
 
     background-color: var(--background-color-primary);
-}
-
-.app_header {
-    display: inline-flex;
-    flex-direction: row;
-
-    align-items: center;
-
-    background-color: darken(@var-background-color-primary, 10%);
-
-    gap: 30px;
-
-    padding: 0 20px;
-
-    .branding {
-        display: inline-flex;
-        flex-direction: row;
-
-        align-items: center;
-
-        gap: 10px;
-
-        svg {
-            color: var(--primary-color);
-            height: 40px;
-            width: 40px;
-        }
-    }
-
-    .menu {
-        display: flex;
-        flex-direction: row;
-
-        width: 100%;
-
-        align-items: center;
-
-        justify-content: flex-end;
-
-        gap: 15px;
-    }
 }
 
 .app_content {

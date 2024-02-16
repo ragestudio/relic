@@ -264,7 +264,7 @@ const PackageOptions = (props) => {
 }
 
 const PackageOptionsLoader = (props) => {
-    const { pkg_id } = useParams()
+    const { pkg_id } = props.params
     const [manifest, setManifest] = React.useState(null)
 
     React.useEffect(() => {
@@ -279,17 +279,6 @@ const PackageOptionsLoader = (props) => {
     }
 
     return <div className="package_options-wrapper">
-        <div className="package_options-wrapper-header">
-            <div className="package_options-wrapper-header-back">
-                <Icons.MdChevronLeft
-                    onClick={() => {
-                        app.location.push("/")
-                    }}
-                />
-                Back
-            </div>
-        </div>
-
         <PackageOptions
             manifest={manifest}
             {...props}

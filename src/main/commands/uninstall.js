@@ -1,11 +1,11 @@
 import {
     getInstalledPackages,
     deleteInstalledPackage,
-} from "../../local_db"
+} from "../local_db"
 
-import sendToRender from "../../utils/sendToRender"
-import readManifest from "../../utils/readManifest"
-import initManifest from "../../utils/initManifest"
+import sendToRender from "../utils/sendToRender"
+import readManifest from "../utils/readManifest"
+import initManifest from "../utils/initManifest"
 
 import { rimraf } from "rimraf"
 

@@ -16,7 +16,7 @@ import pkg from "../../package.json"
 
 import setup from "./setup"
 
-import PkgManager from "./pkg_mng"
+import PkgManager from "./manager"
 import { readManifest } from "./utils/readManifest"
 
 import GoogleDriveAPI from "./lib/google_drive"

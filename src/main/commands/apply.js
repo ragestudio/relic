@@ -1,14 +1,14 @@
 import fs from "node:fs"
 
-import sendToRender from "../../utils/sendToRender"
-import initManifest from "../../utils/initManifest"
-import parseStringVars from "../../utils/parseStringVars"
-import processGenericSteps from "../installs_steps_methods"
+import sendToRender from "../utils/sendToRender"
+import initManifest from "../utils/initManifest"
+import parseStringVars from "../utils/parseStringVars"
+import processGenericSteps from "../generic_steps"
 
 import {
     updateInstalledPackage,
     getInstalledPackages,
-} from "../../local_db"
+} from "../local_db"
 
 export default async function apply(pkg_id, changes) {
     let pkg = await getInstalledPackages(pkg_id)

@@ -1,8 +1,8 @@
 import fs from "node:fs"
 import open from "open"
 
-import Vars from "../vars"
-import * as local_db from "../local_db"
+import Vars from "./vars"
+import * as local_db from "./local_db"
 
 import InstallCMD from "./commands/install"
 import UpdateCMD from "./commands/update"

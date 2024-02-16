@@ -1,11 +1,11 @@
 import {
     getInstalledPackages,
-} from "../../local_db"
+} from "../local_db"
 
-import readManifest from "../../utils/readManifest"
-import initManifest from "../../utils/initManifest"
-import parseStringVars from "../../utils/parseStringVars"
-import sendToRender from "../../utils/sendToRender"
+import readManifest from "../utils/readManifest"
+import initManifest from "../utils/initManifest"
+import parseStringVars from "../utils/parseStringVars"
+import sendToRender from "../utils/sendToRender"
 
 import UpdateCMD from "./update"
 

@@ -1,17 +1,17 @@
 import fs from "node:fs"
 
-import readManifest from "../../utils/readManifest"
-import initManifest from "../../utils/initManifest"
-import sendToRender from "../../utils/sendToRender"
+import readManifest from "../utils/readManifest"
+import initManifest from "../utils/initManifest"
+import sendToRender from "../utils/sendToRender"
 
-import defaultManifest from "../../defaults/pkg_manifest"
-import processGenericSteps from "../installs_steps_methods"
+import defaultManifest from "../defaults/pkg_manifest"
+import processGenericSteps from "../generic_steps"
 
 import applyChanges from "./apply"
 
 import {
     updateInstalledPackage,
-} from "../../local_db"
+} from "../local_db"
 
 export default async function install(manifest) {
     manifest = await readManifest(manifest).catch((error) => {

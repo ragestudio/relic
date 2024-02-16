@@ -1,13 +1,13 @@
 import {
     updateInstalledPackage,
     getInstalledPackages,
-} from "../../local_db"
+} from "../local_db"
 
-import readManifest from "../../utils/readManifest"
-import initManifest from "../../utils/initManifest"
-import sendToRender from "../../utils/sendToRender"
+import readManifest from "../utils/readManifest"
+import initManifest from "../utils/initManifest"
+import sendToRender from "../utils/sendToRender"
 
-import processGenericSteps from "../installs_steps_methods"
+import processGenericSteps from "../generic_steps"
 
 export default async function update(pkg_id) {
     // find package manifest

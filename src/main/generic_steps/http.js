@@ -8,8 +8,8 @@ import humanFormat from "human-format"
 
 import got from "got"
 
-import sendToRender from "../../utils/sendToRender"
-import extractFile from "../../utils/extractFile"
+import sendToRender from "../utils/sendToRender"
+import extractFile from "../utils/extractFile"
 
 function convertSize(size) {
     return `${humanFormat(size, {

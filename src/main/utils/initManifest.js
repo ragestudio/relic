@@ -3,7 +3,7 @@ import os from "node:os"
 import lodash from "lodash"
 
 import Vars from "../vars"
-import PublicLibs from "../public_libraries"
+import PublicLibs from "../lib/public_bind"
 
 async function importLib(libs) {
     const libraries = {}

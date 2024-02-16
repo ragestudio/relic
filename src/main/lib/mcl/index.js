@@ -1,5 +1,5 @@
-import Client from "../../lib/mcl/launcher"
-import Authenticator from "../../lib/mcl/authenticator"
+import Client from "./launcher"
+import Authenticator from "./authenticator"
 
 export default class MCL {
     /**

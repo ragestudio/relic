@@ -3,12 +3,10 @@ import fs from "node:fs"
 
 import humanFormat from "human-format"
 
-import got from "got"
+import sendToRender from "../utils/sendToRender"
+import extractFile from "../utils/extractFile"
 
-import sendToRender from "../../utils/sendToRender"
-import extractFile from "../../utils/extractFile"
-
-import GoogleDriveAPI from "../../lib/google_drive"
+import GoogleDriveAPI from "../lib/google_drive"
 
 function convertSize(size) {
     return `${humanFormat(size, {

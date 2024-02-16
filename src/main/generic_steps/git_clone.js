@@ -1,10 +1,10 @@
 import path from "node:path"
 import fs from "node:fs"
 import upath from "upath"
-import { execa } from "../../lib/execa"
+import { execa } from "../lib/execa"
 
-import sendToRender from "../../utils/sendToRender"
-import Vars from "../../vars"
+import sendToRender from "../utils/sendToRender"
+import Vars from "../vars"
 
 export default async (manifest, step) => {
     const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"

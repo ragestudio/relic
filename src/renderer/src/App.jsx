@@ -1,4 +1,5 @@
 import React from "react"
+import versions from "utils/getVersions"
 import * as antd from "antd"
 
 import GlobalStateContext from "contexts/global"
@@ -171,7 +172,9 @@ class App extends React.Component {
 
     const initResult = await ipc.exec("app:init")
 
-    console.log(`[INIT] >`, initResult)
+    console.log(`Using React version > ${versions["react"]}`)
+    console.log(`Using DOMRouter version > ${versions["react-router-dom"]}`)
+    console.log(`[APP] app:init() | Result >`, initResult)
 
     app.location.push("/")
 

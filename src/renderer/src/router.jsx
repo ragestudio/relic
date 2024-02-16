@@ -64,9 +64,15 @@ const NavigationController = (props) => {
             }
         }
 
-        app.location.path = to
+        app.location.last = {
+            path: app.location.path,
+            search: app.location.search,
+            state: app.location.state,
+        }
 
-        app.location.last = window.location
+        app.location.search = to.includes("?") ? to.split("?")[1] : ""
+        app.location.state = state
+        app.location.path = to
 
         document.startViewTransition(() => {
             navigate(to, {
@@ -76,7 +82,7 @@ const NavigationController = (props) => {
     }
 
     async function backLocation() {
-        return setLocation(app.location.last.pathname + app.location.last.search, app.location.last.state)
+        return setLocation(app.location.last.path + app.location.last.search, app.location.last.state)
     }
 
     function pushToListeners(listener) {
@@ -91,7 +97,11 @@ const NavigationController = (props) => {
 
     React.useEffect(() => {
         app.location = {
-            last: window.location,
+            last: {
+                path: "/",
+                search: "",
+                state: {},
+            },
             path: "/",
             listeners: [],
             listen: pushToListeners,

@@ -34,6 +34,7 @@ async function main() {
 
     let sevenzip_exec = Vars.sevenzip_path
     let git_exec = Vars.git_path
+    let rclone_exec = Vars.rclone_path
 
     if (!fs.existsSync(sevenzip_exec)) {
         global.win.webContents.send("initializing_text", "Downloading 7z binaries...")
@@ -79,10 +80,39 @@ async function main() {
         await new Promise((resolve, reject) => {
             fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: binPath })).on("close", resolve).on("error", reject)
         })
+
+        fs.unlinkSync(tempPath)
+    }
+
+    if (!fs.existsSync(Vars.rclone_path)) {
+        console.log(`Downloading rclone binaries...`)
+        global.win.webContents.send("initializing_text", "Downloading rclone binaries...")
+
+        const tempPath = path.resolve(binariesPath, "rclone-bin.zip")
+
+        let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/rclone`, "rclone-bin.zip")
+
+        await streamPipeline(
+            got.stream(url),
+            fs.createWriteStream(tempPath)
+        )
+
+        global.win.webContents.send("initializing_text", "Extracting rclone binaries...")
+
+        await new Promise((resolve, reject) => {
+            fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: path.resolve(binariesPath, "rclone-bin") })).on("close", resolve).on("error", reject)
+        })
+
+        if (os.platform() !== "win32") {
+            ChildProcess.execSync("chmod +x " + Vars.rclone_path)
+        }
+
+        fs.unlinkSync(tempPath)
     }
 
     console.log(`7z binaries: ${sevenzip_exec}`)
     console.log(`GIT binaries: ${git_exec}`)
+    console.log(`rclone binaries: ${rclone_exec}`)
 }
 
 export default main

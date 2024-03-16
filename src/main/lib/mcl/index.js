@@ -9,7 +9,7 @@ export default class MCL {
      * @param {string} password - the password of the user
      * @return {Promise<Object>} the authentication information
      */
-    static async auth(username, password) {
+    async auth(username, password) {
         return await Authenticator.getAuth(username, password)
     }
 
@@ -19,7 +19,7 @@ export default class MCL {
      * @param {Object} opts - The options to be passed for launching the client.
      * @return {Promise<Client>} A promise that resolves with the launched client.
      */
-    static async launch(opts, callbacks) {
+    async launch(opts, callbacks) {
         const launcher = new Client()
 
         launcher.on("debug", (e) => console.log(e))

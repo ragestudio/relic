@@ -5,12 +5,16 @@ import lodash from "lodash"
 import Vars from "../vars"
 import PublicLibs from "../lib/public_bind"
 
-async function importLib(libs) {
+async function importLib(libs, bindCtx) {
     const libraries = {}
 
-    for (const lib of libs) {
+    for await (const lib of libs) {
         if (PublicLibs[lib]) {
-            libraries[lib] = PublicLibs[lib]
+            if (typeof PublicLibs[lib] === "function") {
+                libraries[lib] = new PublicLibs[lib](bindCtx)
+            }else {
+                libraries[lib] = PublicLibs[lib]
+            }
         }
     }
 
@@ -36,7 +40,12 @@ export default async (manifest = {}) => {
     }
 
     if (Array.isArray(manifest.import_libs)) {
-        manifest.libraries = await importLib(manifest.import_libs)
+        manifest.libraries = await importLib(manifest.import_libs, {
+            id: manifest.id,
+            version: manifest.version,
+            install_path: install_path,
+        })
+
         console.log(`[${manifest.id}] initManifest() | Using libraries: ${manifest.import_libs.join(", ")}`)
     }
 

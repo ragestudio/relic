@@ -43,6 +43,8 @@ export default async function install(manifest) {
             await fs.rmSync(pkg.install_path, { recursive: true })
         }
 
+        console.log(`[${pkg_id}] install() | creating install path [${pkg.install_path}]...`)
+
         await fs.mkdirSync(pkg.install_path, { recursive: true })
 
         // append to db

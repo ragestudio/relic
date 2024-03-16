@@ -93,6 +93,8 @@ export default async (manifest, step) => {
         await extractFile(_path, step.extract)
 
         if (step.delete_after_extract) {
+            console.log(`[${manifest.id}] steps.http() | Deleting temporal file [${_path}]...`)
+            
             sendToRender(`pkg:update:status:${manifest.id}`, {
                 statusText: `Deleting temporal files...`,
             })

@@ -12,7 +12,7 @@ async function importLib(libs, bindCtx) {
         if (PublicLibs[lib]) {
             if (typeof PublicLibs[lib] === "function") {
                 libraries[lib] = new PublicLibs[lib](bindCtx)
-            }else {
+            } else {
                 libraries[lib] = PublicLibs[lib]
             }
         }

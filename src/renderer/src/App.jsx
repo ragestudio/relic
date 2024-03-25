@@ -21,6 +21,7 @@ class App extends React.Component {
     pkg: null,
     initializing: false,
 
+    setup_step: null,
     updateAvailable: false,
     updateText: null,
 
@@ -99,7 +100,9 @@ class App extends React.Component {
 
       message.success("Google Drive API unauthorized")
     },
-    "setup:step": (event, data) => {
+    "setup_step": (event, data) => {
+      console.log(`setup:step`, data)
+
       this.setState({
         setup_step: data,
       })

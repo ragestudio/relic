@@ -21,6 +21,8 @@ import { readManifest } from "./utils/readManifest"
 
 import GoogleDriveAPI from "./lib/google_drive"
 
+import AuthService from "./auth"
+
 const { autoUpdater } = require("electron-differential-updater")
 const ProtocolRegistry = require("protocol-registry")
 
@@ -32,7 +34,7 @@ class ElectronApp {
 		this.win = null
 	}
 
-	authService = new AuthService()
+	authService = global.authService = new AuthService()
 
 	handlers = {
 		"pkg:list": async () => {
@@ -69,6 +71,9 @@ class ElectronApp {
 		"pkg:cancel_install": async (event, manifest_id) => {
 			return await this.pkgManager.uninstall(manifest_id)
 		},
+		"pkg:delete_auth": async (event, manifest_id) => {
+			return this.authService.unauthorize(manifest_id)
+		},
 		"pkg:uninstall": async (event, ...args) => {
 			return await this.pkgManager.uninstall(...args)
 		},
@@ -99,7 +104,16 @@ class ElectronApp {
 			return global.SettingsStore.has(key)
 		},
 		"app:init": async (event, data) => {
-			await setup()
+			try {
+				await setup()
+			} catch (err) {
+				console.error(err)
+
+				sendToRender("new:notification", {
+					message: "Setup failed",
+					description: err.message
+				})
+			}
 
 			// check if can decode google drive token
 			const googleDrive_enabled = !!(await GoogleDriveAPI.readCredentials())
@@ -158,20 +172,21 @@ class ElectronApp {
 	handleURLProtocol(url) {
 		const urlStarter = `${protocolRegistryNamespace}://`
 
+		console.log(url)
+
 		if (url.startsWith(urlStarter)) {
 			const urlValue = url.split(urlStarter)[1]
 
-			const explicitAction = urlValue.split("%3E")
+			const explicitAction = urlValue.split("#")
 
-			if (explicitAction[1]) {
-				const [action, value] = explicitAction
+			console.log(explicitAction)
 
-				switch (action) {
-					case "install": {
-						return sendToRender("installation:invoked", value)
-					}
+			if (explicitAction[0]) {
+				switch (explicitAction[0]) {
 					case "authorize": {
-						return authService.authorizeFromUrl(url)
+						const [pkgid, token] = explicitAction[1].split("%23")
+
+						return this.authService.authorize(pkgid, token)
 					}
 					default: {
 						return sendToRender("new:message", {

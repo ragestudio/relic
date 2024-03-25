@@ -155,7 +155,7 @@ export const PageRender = (props) => {
 
     const globalState = React.useContext(GlobalStateContext)
 
-    if (globalState.setup_step && globalState.loading) {
+    if (globalState.setup_step || globalState.loading) {
         return <div className="app_setup">
             <BarLoader
                 className="app_loader"

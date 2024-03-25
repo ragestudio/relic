@@ -44,6 +44,9 @@ export default async (manifest = {}) => {
             id: manifest.id,
             version: manifest.version,
             install_path: install_path,
+            auth: manifest.auth,
+            configs: manifest.configs,
+            os_string: os_string,
         })
 
         console.log(`[${manifest.id}] initManifest() | Using libraries: ${manifest.import_libs.join(", ")}`)

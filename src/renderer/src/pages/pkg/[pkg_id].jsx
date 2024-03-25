@@ -115,6 +115,24 @@ const PackageOptions = (props) => {
         })
     }
 
+    function handleDeleteAuth() {
+        antd.Modal.confirm({
+            title: "Clear auth data",
+            content: "Are you sure you want to delete auth data? May you need to reauthorize.",
+            onOk() {
+                const closeModal = props.onClose || props.close
+
+                if (closeModal) {
+                    closeModal()
+                } else {
+                    app.location.push("/")
+                }
+
+                ipc.exec("pkg:delete_auth", manifest.id)
+            },
+        })
+    }
+
     function canApplyChanges() {
         return Object.keys(changes).length > 0
     }
@@ -223,6 +241,17 @@ const PackageOptions = (props) => {
         </div>
 
         <div className="package_options-actions">
+            {
+                manifest.auth && <antd.Button
+                    onClick={handleDeleteAuth}
+                    type="default"
+                    size="small"
+                    disabled={loading}
+                >
+                    Delete auth
+                </antd.Button>
+            }
+
             <antd.Button
                 onClick={handleReinstall}
                 icon={<Icons.MdReplay />}

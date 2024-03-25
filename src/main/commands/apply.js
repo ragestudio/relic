@@ -130,7 +130,11 @@ export default async function apply(pkg_id, changes) {
 
         if (changes.configs) {
             if (!pkg.storaged_configs) {
-                pkg.storaged_configs = {}
+                pkg.storaged_configs = Object.entries(pkg.configs).reduce((acc, [key, value]) => {
+                    acc[key] = value.default
+
+                    return acc
+                }, {})
             }
 
             if (Object.keys(changes.configs).length !== 0) {
@@ -142,9 +146,9 @@ export default async function apply(pkg_id, changes) {
 
         await updateInstalledPackage(pkg)
 
-        sendToRender(`new:notification`, {
-            type: "success",
-            message: "Changes applied!",
+        sendToRender(`new:message`, {
+            type: "info",
+            message: "Changes applied",
         })
 
         sendToRender(`pkg:update:status`, {

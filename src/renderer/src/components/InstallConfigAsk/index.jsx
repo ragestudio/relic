@@ -1,6 +1,4 @@
 import React from "react"
-import { Icons, Icon } from "components/Icons"
-
 import * as antd from "antd"
 
 import PKGConfigItem from "../PackageConfigItem"
@@ -11,12 +9,12 @@ const InstallConfigAsk = (props) => {
     const { manifest } = props
 
     const [values, setValues] = React.useState({
-        ...manifest.storaged_configs,
-        ...Object.keys(manifest.configs).reduce((prev, key) => {
-            prev[key] = manifest.configs[key].default
+        ...Object.entries(manifest.configs).reduce((acc, [key, value]) => {
+            acc[key] = value.default
 
-            return prev
-        }, {})
+            return acc
+        }, {}),
+        ...manifest.storaged_configs,
     })
 
     const [currentStep, setCurrentStep] = React.useState(0)
@@ -74,16 +72,24 @@ const InstallConfigAsk = (props) => {
         const steps = manifest.install_ask_configs.map((key, index) => {
             const config = manifest.configs[key]
 
+            if (!config.id) {
+                config.id = key
+            }
+
+            const storagedConfig = manifest.storaged_configs?.[key] ?? manifest.configs[key].default
+
             return <PKGConfigItem
                 key={index}
                 config={config}
-                storagedValue={manifest.storaged_configs[key]}
+                storagedValue={storagedConfig}
                 onChange={handleChanges}
             />
         })
 
         return steps
     }, [])
+
+    console.log(values)
 
     return <div className="install_config_ask">
         <antd.Steps

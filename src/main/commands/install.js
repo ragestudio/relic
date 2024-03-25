@@ -100,10 +100,6 @@ export default async function install(manifest) {
             })
         }
 
-        // if (Array.isArray(pkg.install_ask_configs)) {
-        //     sendToRender("pkg:install:ask", pkg)
-        // }
-
         sendToRender(`pkg:update:status`, {
             id: pkg_id,
             status: "installed",
@@ -112,6 +108,10 @@ export default async function install(manifest) {
         sendToRender(`new:message`, {
             message: `Successfully installed ${pkg.name}!`,
         })
+
+        if (Array.isArray(pkg.install_ask_configs)) {
+            sendToRender("pkg:install:ask", pkg)
+        }
 
         console.log(`[${pkg_id}] install() | Successfully installed ${pkg.name}!`)
     } catch (error) {

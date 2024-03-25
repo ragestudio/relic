@@ -71,7 +71,7 @@ const ManifestInfo = (props) => {
         <div className="manifest_info-extra_info">
             <div className="manifest_info-extra_info-item">
                 <MdDownloadForOffline />
-                0 MB
+                Unknown size
             </div>
 
             <div className="manifest_info-extra_info-item">

@@ -194,9 +194,7 @@ class ElectronApp {
 						return this.authService.authorize(pkgid, token)
 					}
 					default: {
-						return sendToRender("new:message", {
-							message: "Unrecognized URL action"
-						})
+						return sendToRender("installation:invoked", explicitAction[0])
 					}
 				}
 			} else {

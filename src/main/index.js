@@ -181,7 +181,7 @@ class ElectronApp {
 
 			console.log(explicitAction)
 
-			if (explicitAction[0]) {
+			if (explicitAction.length > 0) {
 				switch (explicitAction[0]) {
 					case "authorize": {
 						const [pkgid, token] = explicitAction[1].split("%23")

@@ -1,17 +1,13 @@
 import React from "react"
 import * as antd from "antd"
 
-import { Context as InstallationsContext } from "contexts/installations"
-
 import "./index.less"
 
 const NewInstallation = (props) => {
-    const { install } = React.useContext(InstallationsContext)
     const [manifestUrl, setManifestUrl] = React.useState("")
 
     function handleClickInstall() {
-        install(manifestUrl)
-        props.close()
+        app.invokeInstall(manifestUrl)
     }
 
     return <div className="new_installation_prompt">

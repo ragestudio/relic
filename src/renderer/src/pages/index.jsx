@@ -13,16 +13,6 @@ import "./index.less"
 class InstallationsManager extends React.Component {
     static contextType = InstallationsContext
 
-    state = {
-        drawerVisible: false,
-    }
-
-    toggleDrawer = (to) => {
-        this.setState({
-            drawerVisible: to ?? !this.state.drawerVisible,
-        })
-    }
-
     render() {
         const { packages } = this.context
 
@@ -33,7 +23,10 @@ class InstallationsManager extends React.Component {
                 <antd.Button
                     type="primary"
                     icon={<MdAdd />}
-                    onClick={() => this.toggleDrawer(true)}
+                    onClick={() => app.drawer.open(NewInstallation, {
+                        title: "Add new installation",
+                        height: "200px",
+                    })}
                 >
                     Add new installation
                 </antd.Button>
@@ -57,18 +50,6 @@ class InstallationsManager extends React.Component {
                     })
                 }
             </div>
-
-            <antd.Drawer
-                title="Add new installation"
-                placement="bottom"
-                open={this.state.drawerVisible}
-                height={"200px"}
-                onClose={() => this.toggleDrawer(false)}
-            >
-                <NewInstallation
-                    close={() => this.toggleDrawer(false)}
-                />
-            </antd.Drawer>
         </div>
     }
 }

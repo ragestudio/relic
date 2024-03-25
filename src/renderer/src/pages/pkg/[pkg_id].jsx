@@ -74,19 +74,13 @@ const PackageOptions = (props) => {
     })
 
     async function applyChanges() {
-        if (props.onClose) {
-            props.onClose()
-        }
-
-        if (props.close) {
-            props.close()
-        }
-
         setLoading(true)
 
         await ipc.exec("pkg:apply", manifest.id, changes).catch((err) => {
             console.log(err)
         })
+
+        app.location.back()
 
         setLoading(false)
     }

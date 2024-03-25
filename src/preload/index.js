@@ -37,11 +37,18 @@ if (process.contextIsolated) {
         send: (channel, args) => {
           ipcRenderer.send(channel, args)
         },
+        exclusiveListen: (channel, listener) => {
+          if (ipcRenderer.listeners(channel, listener)) {
+            ipcRenderer.removeAllListeners(channel)
+          }
+
+          ipcRenderer.on(channel, listener)
+        },
         on: (channel, listener) => {
           ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
         },
         off: (channel, listener) => {
-          ipcRenderer.removeListener(channel, listener)
+          ipcRenderer.off(channel, listener)
         }
       },
     )

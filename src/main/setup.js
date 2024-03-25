@@ -37,7 +37,7 @@ async function main() {
     let rclone_exec = Vars.rclone_path
 
     if (!fs.existsSync(sevenzip_exec)) {
-        global.win.webContents.send("initializing_text", "Downloading 7z binaries...")
+        global.win.webContents.send("setup:step", "Downloading 7z binaries...")
         console.log(`Downloading 7z binaries...`)
 
         fs.mkdirSync(path.resolve(binariesPath, "7z-bin"), { recursive: true })
@@ -63,7 +63,7 @@ async function main() {
         const binPath = path.resolve(binariesPath, "git-bin")
 
         if (!fs.existsSync(tempPath)) {
-            global.win.webContents.send("initializing_text", "Downloading GIT binaries...")
+            global.win.webContents.send("setup:step", "Downloading GIT binaries...")
             console.log(`Downloading git binaries...`)
 
             let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/git`, "git-bundle-2.4.0.zip")
@@ -74,7 +74,7 @@ async function main() {
             )
         }
 
-        global.win.webContents.send("initializing_text", "Extracting GIT binaries...")
+        global.win.webContents.send("setup:step", "Extracting GIT binaries...")
         console.log(`Extracting GIT...`)
 
         await new Promise((resolve, reject) => {
@@ -86,7 +86,7 @@ async function main() {
 
     if (!fs.existsSync(Vars.rclone_path)) {
         console.log(`Downloading rclone binaries...`)
-        global.win.webContents.send("initializing_text", "Downloading rclone binaries...")
+        global.win.webContents.send("setup:step", "Downloading rclone binaries...")
 
         const tempPath = path.resolve(binariesPath, "rclone-bin.zip")
 
@@ -97,7 +97,7 @@ async function main() {
             fs.createWriteStream(tempPath)
         )
 
-        global.win.webContents.send("initializing_text", "Extracting rclone binaries...")
+        global.win.webContents.send("setup:step", "Extracting rclone binaries...")
 
         await new Promise((resolve, reject) => {
             fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: path.resolve(binariesPath, "rclone-bin") })).on("close", resolve).on("error", reject)
@@ -112,7 +112,7 @@ async function main() {
 
     if (!fs.existsSync(Vars.java_path)) {
         console.log(`Downloading java binaries...`)
-        global.win.webContents.send("initializing_text", "Downloading Java JDK...")
+        global.win.webContents.send("setup:step", "Downloading Java JDK...")
 
         const tempPath = path.resolve(binariesPath, "java-jdk.zip")
 
@@ -123,7 +123,7 @@ async function main() {
             fs.createWriteStream(tempPath)
         )
 
-        global.win.webContents.send("initializing_text", "Extracting JAVA...")
+        global.win.webContents.send("setup:step", "Extracting JAVA...")
 
         await new Promise((resolve, reject) => {
             fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: path.resolve(binariesPath, "java-jdk") })).on("close", resolve).on("error", reject)
@@ -140,6 +140,9 @@ async function main() {
     console.log(`GIT binaries: ${git_exec}`)
     console.log(`rclone binaries: ${rclone_exec}`)
     console.log(`JAVA jdk: ${Vars.java_path}`)
+
+    global.win.webContents.send("setup:step", undefined)
+    global.win.webContents.send("setup:done")
 }
 
 export default main

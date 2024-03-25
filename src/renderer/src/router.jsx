@@ -155,7 +155,7 @@ export const PageRender = (props) => {
 
     const globalState = React.useContext(GlobalStateContext)
 
-    if (globalState.initializing_text && globalState.loading) {
+    if (globalState.setup_step && globalState.loading) {
         return <div className="app_setup">
             <BarLoader
                 className="app_loader"
@@ -165,7 +165,7 @@ export const PageRender = (props) => {
             <h1>Setting up...</h1>
 
             <code>
-                <pre>{globalState.initializing_text}</pre>
+                <pre>{globalState.setup_step}</pre>
             </code>
         </div>
     }

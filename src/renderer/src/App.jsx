@@ -1,61 +1,19 @@
+import GlobalApp from "./GlobalApp.jsx"
+
 import React from "react"
-import versions from "utils/getVersions"
 import * as antd from "antd"
 
+import versions from "utils/getVersions"
 import GlobalStateContext from "contexts/global"
-
-import getRootCssVar from "utils/getRootCssVar"
-
-import ManifestInfo from "components/ManifestInfo"
-import PackageUpdateAvailable from "components/PackageUpdateAvailable"
-import InstallConfigAsk from "components/InstallConfigAsk"
 
 import AppLayout from "layout"
 import AppModalDialog from "layout/components/ModalDialog"
+import AppDrawer from "layout/components/Drawer"
 
 import { InternalRouter, PageRender } from "./router.jsx"
 
-globalThis.getRootCssVar = getRootCssVar
-globalThis.notification = antd.notification
-globalThis.message = antd.message
-
 // create a global app context
-window.app = {
-  applyUpdate: () => {
-    antd.message.loading("Updating, please wait...")
-
-    ipc.exec("updater:apply")
-  },
-  invokeInstall: (manifest) => {
-    console.log(`installation invoked >`, manifest)
-
-    app.modal.open(ManifestInfo, {
-      manifest: manifest,
-      close: () => {
-        app.modal.close()
-      }
-    })
-  },
-  pkgUpdateAvailable: (update_data) => {
-    app.modal.open(PackageUpdateAvailable, {
-      update: update_data,
-      close: () => {
-        app.modal.close()
-      }
-    })
-  },
-  pkgInstallWizard: (manifest) => {
-    app.modal.open(InstallConfigAsk, {
-      manifest: manifest,
-      close: () => {
-        app.modal.close()
-      }
-    })
-  },
-  checkUpdates: () => {
-    ipc.exec("updater:check")
-  },
-}
+window.app = GlobalApp
 
 class App extends React.Component {
   state = {
@@ -92,20 +50,35 @@ class App extends React.Component {
       antd.message[data.type || "info"](data.message)
     },
     "app:update_available": (event, data) => {
-      this.onUpdateAvailable(data)
+      if (this.state.loading) {
+        return false
+      }
+
+      this.setState({
+        updateAvailable: true,
+      })
+
+      app.appUpdateAvailable(data)
     },
     "pkg:install:ask": (event, data) => {
+      if (this.state.loading) {
+        return false
+      }
+
       app.pkgInstallWizard(data)
     },
     "pkg:update_available": (event, data) => {
+      if (this.state.loading) {
+        return false
+      }
+
       app.pkgUpdateAvailable(data)
     },
-    "initializing_text": (event, data) => {
-      this.setState({
-        initializing_text: data,
-      })
-    },
     "installation:invoked": (event, manifest) => {
+      if (this.state.loading) {
+        return false
+      }
+
       app.invokeInstall(manifest)
     },
     "drive:authorized": (event, data) => {
@@ -126,55 +99,23 @@ class App extends React.Component {
 
       message.success("Google Drive API unauthorized")
     },
-    "app:checking_update_downloading": (event, data) => {
+    "setup:step": (event, data) => {
       this.setState({
-        updateText: "Downloading update..."
+        setup_step: data,
       })
     },
-    "app:checking_update": (event, data) => {
-      this.setState({
-        updateText: "Checking for updates..."
-      })
-    },
-    "app:checking_update_error": (event, data) => {
-      this.setState({
-        updateText: null
-      })
-    },
-  }
-
-  onUpdateAvailable = () => {
-    this.setState({
-      updateAvailable: true,
-    })
-
-    console.log(data)
-
-    antd.Modal.confirm({
-      title: "Update Available",
-      content: <>
-        <p>
-          A new version of the application is available.
-        </p>
-      </>,
-      okText: "Update",
-      cancelText: "Later",
-      onOk: () => {
-        app.applyUpdate()
-      }
-    })
   }
 
   componentDidMount = async () => {
-    for (const event in this.ipcEvents) {
-      ipc.on(event, this.ipcEvents[event])
-    }
-
     const initResult = await ipc.exec("app:init")
 
     console.log(`Using React version > ${versions["react"]}`)
     console.log(`Using DOMRouter version > ${versions["react-router-dom"]}`)
     console.log(`[APP] app:init() | Result >`, initResult)
+
+    for (const event in this.ipcEvents) {
+      ipc.exclusiveListen(event, this.ipcEvents[event])
+    }
 
     app.location.push("/")
 
@@ -185,12 +126,6 @@ class App extends React.Component {
         drive: initResult.authorizedServices?.drive ?? false
       },
     })
-  }
-
-  componentWillUnmount = () => {
-    for (const event in this.ipcEvents) {
-      ipc.off(event, this.ipcEvents[event])
-    }
   }
 
   render() {
@@ -206,6 +141,8 @@ class App extends React.Component {
     >
       <InternalRouter>
         <GlobalStateContext.Provider value={this.state}>
+
+          <AppDrawer />
           <AppModalDialog />
 
           <AppLayout>

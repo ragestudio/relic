@@ -68,7 +68,7 @@ export class WithContext extends React.Component {
         const packages = await ipc.exec("pkg:list")
 
         for (const event in this.ipcEvents) {
-            ipc.on(event, this.ipcEvents[event])
+            ipc.exclusiveListen(event, this.ipcEvents[event])
         }
 
         this.setState({
@@ -77,16 +77,6 @@ export class WithContext extends React.Component {
                 ...packages,
             ]
         })
-    }
-
-    componentWillUnmount() {
-        for (const event in this.ipcEvents) {
-            ipc.off(event, this.ipcEvents[event])
-        }
-    }
-
-    install = async (manifest) => {
-        return await app.invokeInstall(manifest)
     }
 
     render() {

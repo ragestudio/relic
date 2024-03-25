@@ -110,9 +110,36 @@ async function main() {
         fs.unlinkSync(tempPath)
     }
 
+    if (!fs.existsSync(Vars.java_path)) {
+        console.log(`Downloading java binaries...`)
+        global.win.webContents.send("initializing_text", "Downloading Java JDK...")
+
+        const tempPath = path.resolve(binariesPath, "java-jdk.zip")
+
+        let url = resolveDestBin(`https://storage.ragestudio.net/rstudio/binaries/java`, "java-jdk.zip")
+
+        await streamPipeline(
+            got.stream(url),
+            fs.createWriteStream(tempPath)
+        )
+
+        global.win.webContents.send("initializing_text", "Extracting JAVA...")
+
+        await new Promise((resolve, reject) => {
+            fs.createReadStream(tempPath).pipe(unzipper.Extract({ path: path.resolve(binariesPath, "java-jdk") })).on("close", resolve).on("error", reject)
+        })
+
+        if (os.platform() !== "win32") {
+            ChildProcess.execSync("chmod +x " + Vars.rclone_path)
+        }
+
+        fs.unlinkSync(tempPath)
+    }
+
     console.log(`7z binaries: ${sevenzip_exec}`)
     console.log(`GIT binaries: ${git_exec}`)
     console.log(`rclone binaries: ${rclone_exec}`)
+    console.log(`JAVA jdk: ${Vars.java_path}`)
 }
 
 export default main

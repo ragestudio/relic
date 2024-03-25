@@ -15,6 +15,7 @@ global.LOCAL_DB = upath.normalizeSafe(path.join(global.RUNTIME_PATH, "local_db.j
 global.SEVENZIP_PATH = upath.normalizeSafe(path.resolve(global.BINARIES_PATH, "7z-bin", process.platform === "win32" ? "7za.exe" : "7za"))
 global.GIT_PATH = upath.normalizeSafe(path.resolve(global.BINARIES_PATH, "git-bin", "bin", process.platform === "win32" ? "git.exe" : "git"))
 global.RCLONE_PATH = upath.normalizeSafe(path.resolve(global.BINARIES_PATH, "rclone-bin", process.platform === "win32" ? "rclone.exe" : "rclone"))
+global.JAVA_PATH = upath.normalizeSafe(path.resolve(global.BINARIES_PATH, "java-jdk", "bin", process.platform === "win32" ? "java.exe" : "java"))
 
 export default {
     binaries_path: global.BINARIES_PATH,
@@ -22,6 +23,7 @@ export default {
     sevenzip_path: global.SEVENZIP_PATH,
     git_path: global.GIT_PATH,
     rclone_path: global.RCLONE_PATH,
+    java_path: global.JAVA_PATH,
 
     runtime_path: global.RUNTIME_PATH,
     packages_path: global.PACKAGES_PATH,

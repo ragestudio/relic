@@ -5,6 +5,16 @@ import { Icons } from "components/Icons"
 import "./index.less"
 
 const PackageUpdateAvailable = ({ update, close }) => {
+    if (!update) {
+        setTimeout(() => {
+            close()
+        }, 1000)
+
+        return <h1>
+            Nothing to update
+        </h1>
+    }
+
     function handleUpdate() {
         ipc.exec("pkg:update", update.manifest.id, {
             execOnFinish: true

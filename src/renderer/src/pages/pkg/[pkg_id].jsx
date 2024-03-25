@@ -1,7 +1,6 @@
 import React from "react"
 import * as antd from "antd"
 import { Icons, Icon } from "components/Icons"
-import { useParams } from "react-router-dom"
 
 import PKGConfigItem from "components/PackageConfigItem"
 
@@ -59,6 +58,8 @@ const PKGPatches = (props) => {
 }
 
 const PackageOptions = (props) => {
+    const [loading, setLoading] = React.useState(false)
+
     const { manifest } = props
 
     if (!Array.isArray(manifest.applied_patches)) {
@@ -72,15 +73,22 @@ const PackageOptions = (props) => {
         })) : null
     })
 
-    function applyChanges() {
+    async function applyChanges() {
         if (props.onClose) {
             props.onClose()
         }
+
         if (props.close) {
             props.close()
         }
 
-        ipc.exec("pkg:apply", manifest.id, changes)
+        setLoading(true)
+
+        await ipc.exec("pkg:apply", manifest.id, changes).catch((err) => {
+            console.log(err)
+        })
+
+        setLoading(false)
     }
 
     function handleChanges(field, key, value) {
@@ -226,18 +234,10 @@ const PackageOptions = (props) => {
                 icon={<Icons.MdReplay />}
                 type="default"
                 size="small"
+                disabled={loading}
             >
                 Reinstall
             </antd.Button>
-
-            {/* <antd.Button
-                disabled
-                icon={<Icons.MdCheck />}
-                type="default"
-                size="small"
-            >
-                Verify
-            </antd.Button> */}
 
             {
                 manifest.install_ask_configs && <antd.Button
@@ -247,6 +247,7 @@ const PackageOptions = (props) => {
                     icon={<Icons.MdSettings />}
                     type="default"
                     size="small"
+                    disabled={loading}
                 >
                     Wizard
                 </antd.Button>
@@ -255,7 +256,8 @@ const PackageOptions = (props) => {
             <antd.Button
                 type="primary"
                 onClick={applyChanges}
-                disabled={!canApplyChanges()}
+                disabled={loading || !canApplyChanges()}
+                loading={loading}
             >
                 Apply Changes
             </antd.Button>

@@ -177,7 +177,12 @@ class ElectronApp {
 		if (url.startsWith(urlStarter)) {
 			const urlValue = url.split(urlStarter)[1]
 
-			const explicitAction = urlValue.split("#")
+			let explicitAction = urlValue.split("#")
+
+			// remove trailing slash for windows :(
+			if (explicitAction[0].endsWith("/")) {
+				explicitAction[0] = explicitAction[0].slice(0, -1)
+			}
 
 			console.log(explicitAction)
 

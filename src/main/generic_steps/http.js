@@ -8,6 +8,7 @@ import humanFormat from "human-format"
 
 import got from "got"
 
+import parseStringVars from "../utils/parseStringVars"
 import sendToRender from "../utils/sendToRender"
 import extractFile from "../utils/extractFile"
 
@@ -18,6 +19,8 @@ function convertSize(size) {
 }
 
 export default async (manifest, step) => {
+    step.path = await parseStringVars(step.path, manifest)
+
     let _path = path.resolve(manifest.install_path, step.path ?? ".")
 
     sendToRender(`pkg:update:status:${manifest.id}`, {
@@ -94,7 +97,7 @@ export default async (manifest, step) => {
 
         if (step.delete_after_extract) {
             console.log(`[${manifest.id}] steps.http() | Deleting temporal file [${_path}]...`)
-            
+
             sendToRender(`pkg:update:status:${manifest.id}`, {
                 statusText: `Deleting temporal files...`,
             })

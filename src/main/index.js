@@ -48,12 +48,12 @@ class ElectronApp {
     "pkg:update": async (event, manifest_id, { execOnFinish = false } = {}) => {
       await this.pkgManager.update(manifest_id)
 
-      if(execOnFinish) {
+      if (execOnFinish) {
         await this.pkgManager.execute(manifest_id)
       }
     },
-    "pkg:apply": (event, manifest_id, changes) => {
-      this.pkgManager.applyChanges(manifest_id, changes)
+    "pkg:apply": async (event, manifest_id, changes) => {
+      return await this.pkgManager.applyChanges(manifest_id, changes)
     },
     "pkg:retry_install": async (event, manifest_id) => {
       const pkg = await this.pkgManager.getInstalledPackages(manifest_id)

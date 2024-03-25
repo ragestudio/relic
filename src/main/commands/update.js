@@ -1,3 +1,5 @@
+import fs from "node:fs"
+
 import {
     updateInstalledPackage,
     getInstalledPackages,
@@ -6,6 +8,7 @@ import {
 import readManifest from "../utils/readManifest"
 import initManifest from "../utils/initManifest"
 import sendToRender from "../utils/sendToRender"
+import parseStringVars from "../utils/parseStringVars"
 
 import processGenericSteps from "../generic_steps"
 
@@ -58,6 +61,32 @@ export default async function update(pkg_id) {
 
         // Process generic steps
         await processGenericSteps(pkg, pkg.update_steps)
+
+        // reapply patches
+        if (Array.isArray(pkg.applied_patches)) {
+            for await (const patchKey of pkg.applied_patches) {
+                const patch = pkg.patches.find((patch) => patch.id === patchKey)
+
+                if (!patch || !Array.isArray(patch.additions)) {
+                    continue
+                }
+
+                console.log(`Processing patch [${patch.id}]`, patch)
+
+                for await (let addition of patch.additions) {
+                    console.log(`Processing addition [${addition.file}]`, addition)
+
+                    // resolve patch file
+                    addition.file = await parseStringVars(addition.file, pkg)
+
+                    if (fs.existsSync(addition.file)) {
+                        continue
+                    }
+
+                    await processGenericSteps(pkg, addition.steps)
+                }
+            }
+        }
 
         // check if package manifest has an after_update function
         if (typeof pkg.after_update === "function") {

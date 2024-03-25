@@ -189,9 +189,12 @@ class ElectronApp {
 			if (explicitAction.length > 0) {
 				switch (explicitAction[0]) {
 					case "authorize": {
-						const [pkgid, token] = explicitAction[1].split("%23")
-
-						return this.authService.authorize(pkgid, token)
+						if (!explicitAction[2]) {
+							const [pkgid, token] = explicitAction[1].split("%23")
+							return this.authService.authorize(pkgid, token)
+						} else {
+							return this.authService.authorize(explicitAction[1], explicitAction[2])
+						}
 					}
 					default: {
 						return sendToRender("installation:invoked", explicitAction[0])

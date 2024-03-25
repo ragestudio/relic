@@ -32,6 +32,8 @@ class ElectronApp {
 		this.win = null
 	}
 
+	authService = new AuthService()
+
 	handlers = {
 		"pkg:list": async () => {
 			return await this.pkgManager.getInstalledPackages()
@@ -167,6 +169,9 @@ class ElectronApp {
 				switch (action) {
 					case "install": {
 						return sendToRender("installation:invoked", value)
+					}
+					case "authorize": {
+						return authService.authorizeFromUrl(url)
 					}
 					default: {
 						return sendToRender("new:message", {

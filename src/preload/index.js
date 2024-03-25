@@ -31,8 +31,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld(
       "ipc",
       {
-        exec: (channel, ...args) => {
-          return ipcRenderer.invoke(channel, ...args)
+        exec: async (channel, ...args) => {
+          return await ipcRenderer.invoke(channel, ...args)
         },
         send: (channel, args) => {
           ipcRenderer.send(channel, args)

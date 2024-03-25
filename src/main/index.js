@@ -65,17 +65,17 @@ class ElectronApp {
       //await this.pkgManager.uninstall(manifest_id)
       await this.pkgManager.install(pkg)
     },
-    "pkg:cancel_install": (event, manifest_id) => {
-      this.pkgManager.uninstall(manifest_id)
+    "pkg:cancel_install": async (event, manifest_id) => {
+      return await this.pkgManager.uninstall(manifest_id)
     },
-    "pkg:uninstall": (event, ...args) => {
-      this.pkgManager.uninstall(...args)
+    "pkg:uninstall": async (event, ...args) => {
+      return await this.pkgManager.uninstall(...args)
     },
-    "pkg:execute": (event, ...args) => {
-      this.pkgManager.execute(...args)
+    "pkg:execute": async (event, ...args) => {
+      return await this.pkgManager.execute(...args)
     },
-    "pkg:open": (event, manifest_id) => {
-      this.pkgManager.open(manifest_id)
+    "pkg:open": async (event, manifest_id) => {
+      return await this.pkgManager.open(manifest_id)
     },
     "updater:check": () => {
       autoUpdater.checkForUpdates()

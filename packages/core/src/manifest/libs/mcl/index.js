@@ -1,3 +1,5 @@
+import Logger from "../../../logger"
+
 import Client from "./launcher"
 import Authenticator from "./authenticator"
 

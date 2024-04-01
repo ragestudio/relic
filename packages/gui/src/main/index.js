@@ -1,10 +1,12 @@
-import RelicCore from "../../../core/src/index"
-
-import sendToRender from "./utils/sendToRender"
 global.SettingsStore = new Store({
 	name: "settings",
 	watch: true,
 })
+
+import RelicCore from "@ragestudio/relic-core/src"
+import CoreAdapter from "./classes/CoreAdapter"
+
+import sendToRender from "./utils/sendToRender"
 
 import path from "node:path"
 
@@ -15,71 +17,57 @@ import Store from "electron-store"
 
 import pkg from "../../package.json"
 
-import PkgManager from "./manager"
-import { readManifest } from "./utils/readManifest"
-import AuthService from "./auth"
-
 const { autoUpdater } = require("electron-differential-updater")
 const ProtocolRegistry = require("protocol-registry")
 
-const protocolRegistryNamespace = "rsbundle"
+const protocolRegistryNamespace = "relic"
 
 class ElectronApp {
 	constructor() {
-		this.pkgManager = new PkgManager()
 		this.win = null
+		this.core = new RelicCore()
+		this.adapter = new CoreAdapter(this, this.core)
 	}
-
-	core = new RelicCore()
-
-	authService = global.authService = new AuthService()
 
 	handlers = {
 		"pkg:list": async () => {
-			return await this.pkgManager.getInstalledPackages()
+			return await this.core.package.list()
 		},
-		"pkg:get": async (event, manifest_id) => {
-			return await this.pkgManager.getInstalledPackages(manifest_id)
+		"pkg:get": async (event, pkg_id) => {
+			return await this.core.db.getPackages(pkg_id)
 		},
-		"pkg:read": async (event, manifest_url) => {
-			return JSON.stringify(await readManifest(manifest_url))
+		"pkg:read": async (event, manifest_path, options = {}) => {
+			const manifest = await this.core.package.read(manifest_path, options)
+
+			return JSON.stringify({
+				...this.core.db.defaultPackageState({ ...manifest }),
+				...manifest,
+				name: manifest.pkg_name,
+			})
 		},
-		"pkg:install": async (event, manifest) => {
-			this.pkgManager.install(manifest)
+		"pkg:install": async (event, manifest_path) => {
+			return await this.core.package.install(manifest_path)
 		},
-		"pkg:update": async (event, manifest_id, { execOnFinish = false } = {}) => {
-			await this.pkgManager.update(manifest_id)
+		"pkg:update": async (event, pkg_id, { execOnFinish = false } = {}) => {
+			await this.core.package.update(pkg_id)
 
 			if (execOnFinish) {
-				await this.pkgManager.execute(manifest_id)
-			}
-		},
-		"pkg:apply": async (event, manifest_id, changes) => {
-			return await this.pkgManager.applyChanges(manifest_id, changes)
-		},
-		"pkg:retry_install": async (event, manifest_id) => {
-			const pkg = await this.pkgManager.getInstalledPackages(manifest_id)
-
-			if (!pkg) {
-				return false
+				await this.core.package.execute(pkg_id)
 			}
 
-			await this.pkgManager.install(pkg)
+			return true
 		},
-		"pkg:cancel_install": async (event, manifest_id) => {
-			return await this.pkgManager.uninstall(manifest_id)
+		"pkg:apply": async (event, pkg_id, changes) => {
+			return await this.core.package.apply(pkg_id, changes)
 		},
-		"pkg:delete_auth": async (event, manifest_id) => {
-			return this.authService.unauthorize(manifest_id)
+		"pkg:uninstall": async (event, pkg_id) => {
+			return await this.core.package.uninstall(pkg_id)
 		},
-		"pkg:uninstall": async (event, ...args) => {
-			return await this.pkgManager.uninstall(...args)
+		"pkg:execute": async (event, pkg_id) => {
+			return await this.core.package.execute(pkg_id)
 		},
-		"pkg:execute": async (event, ...args) => {
-			return await this.pkgManager.execute(...args)
-		},
-		"pkg:open": async (event, manifest_id) => {
-			return await this.pkgManager.open(manifest_id)
+		"pkg:open": async (event, pkg_id) => {
+			return await this.core.openPath(pkg_id)
 		},
 		"updater:check": () => {
 			autoUpdater.checkForUpdates()
@@ -103,6 +91,7 @@ class ElectronApp {
 		},
 		"app:init": async (event, data) => {
 			try {
+				await this.core.initialize()
 				await this.core.setup()
 			} catch (err) {
 				console.error(err)
@@ -122,7 +111,7 @@ class ElectronApp {
 
 	events = {
 		"open-runtime-path": () => {
-			return this.pkgManager.openRuntimePath()
+			return this.core.openPath()
 		},
 		"open-dev-logs": () => {
 			return sendToRender("new:message", {
@@ -165,8 +154,6 @@ class ElectronApp {
 	handleURLProtocol(url) {
 		const urlStarter = `${protocolRegistryNamespace}://`
 
-		console.log(url)
-
 		if (url.startsWith(urlStarter)) {
 			const urlValue = url.split(urlStarter)[1]
 
@@ -177,16 +164,14 @@ class ElectronApp {
 				explicitAction[0] = explicitAction[0].slice(0, -1)
 			}
 
-			console.log(explicitAction)
-
 			if (explicitAction.length > 0) {
 				switch (explicitAction[0]) {
 					case "authorize": {
 						if (!explicitAction[2]) {
-							const [pkgid, token] = explicitAction[1].split("%23")
-							return this.authService.authorize(pkgid, token)
+							const [pkg_id, token] = explicitAction[1].split("%23")
+							return this.core.auth.authorize(pkg_id, token)
 						} else {
-							return this.authService.authorize(explicitAction[1], explicitAction[2])
+							return this.core.auth.authorize(explicitAction[1], explicitAction[2])
 						}
 					}
 					default: {

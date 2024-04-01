@@ -7,23 +7,23 @@ import PKGConfigItem from "components/PackageConfigItem"
 import "./index.less"
 
 const PKGConfigs = (props) => {
-    const { defaultConfigs = {}, configs = {} } = props
+    const { config = {}, items = {} } = props
 
-    if (Object.keys(defaultConfigs).length === 0) {
+    if (Object.keys(items).length === 0) {
         return <p>
             No configuration available
         </p>
     }
 
-    return Object.keys(defaultConfigs).map((key, index) => {
-        const config = defaultConfigs[key]
+    return Object.keys(items).map((key, index) => {
+        const itemConfig = items[key]
 
-        config.id = key
+        itemConfig.id = key
 
         return <PKGConfigItem
             key={index}
-            storagedValue={configs[key]}
-            config={config}
+            config={itemConfig}
+            storagedValue={config[key]}
             onChange={props.onChange}
         />
     })
@@ -62,12 +62,8 @@ const PackageOptions = (props) => {
 
     const { manifest } = props
 
-    if (!Array.isArray(manifest.applied_patches)) {
-        manifest.applied_patches = Array()
-    }
-
     const [changes, setChanges] = React.useState({
-        configs: {},
+        config: manifest.config ?? {},
         patches: manifest.patches ? Object.fromEntries(manifest.patches.map((p) => {
             return [p.id, manifest.applied_patches.includes(p.id)]
         })) : null
@@ -139,7 +135,7 @@ const PackageOptions = (props) => {
 
     return <div className="package_options">
         {
-            manifest.configs && <div className="package_options-field">
+            manifest.configuration && <div className="package_options-field">
                 <div className="package_options-field-header">
                     <p>
                         <Icon
@@ -150,10 +146,10 @@ const PackageOptions = (props) => {
 
                 <div className="package_options-field-body">
                     <PKGConfigs
-                        defaultConfigs={manifest.configs}
-                        configs={manifest.storaged_configs}
+                        items={manifest.configuration}
+                        config={manifest.config}
                         onChange={(key, value) => {
-                            handleChanges("configs", key, value)
+                            handleChanges("config", key, value)
                         }}
                     />
                 </div>
@@ -293,11 +289,25 @@ const PackageOptionsLoader = (props) => {
     const [manifest, setManifest] = React.useState(null)
 
     React.useEffect(() => {
-        ipc.exec("pkg:get", pkg_id).then((manifest) => {
-            console.log(manifest)
-            setManifest(manifest)
-        })
+        loadManifest()
     }, [pkg_id])
+
+    async function loadManifest() {
+        let pkg = await ipc.exec("pkg:get", pkg_id)
+
+        if (!pkg) {
+            return
+        }
+
+        const manifestInstance = await ipc.exec("pkg:read", pkg.local_manifest)
+
+        setManifest({
+            ...JSON.parse(manifestInstance),
+            ...pkg,
+        })
+    }
+
+    console.log(manifest)
 
     if (!manifest) {
         return <antd.Skeleton active />

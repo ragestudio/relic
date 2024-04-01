@@ -3,7 +3,7 @@ import * as antd from "antd"
 
 import { MdAdd } from "react-icons/md"
 
-import { Context as InstallationsContext, WithContext } from "contexts/installations"
+import { Context as InstallationsContext, WithContext } from "contexts/packages"
 
 import PackageItem from "components/PackageItem"
 import NewInstallation from "components/NewInstallation"

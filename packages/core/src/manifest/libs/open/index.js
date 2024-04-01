@@ -1,3 +1,5 @@
+import Logger from "../../../logger"
+
 import open, { apps } from "open"
 
 const Log = Logger.child({ service: "OPEN-LIB" })

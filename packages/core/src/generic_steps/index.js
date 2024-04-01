@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import ISM_GIT_CLONE from "./git_clone"
 import ISM_GIT_PULL from "./git_pull"
 import ISM_GIT_RESET from "./git_reset"
@@ -19,6 +21,10 @@ const StepsOrders = [
 
 export default async function processGenericSteps(pkg, steps, logger = Logger) {
     logger.info(`Processing generic steps...`)
+
+    if (!Array.isArray(steps)) {
+        throw new Error(`Steps must be an array`)
+    }
 
     if (steps.length === 0) {
         return pkg

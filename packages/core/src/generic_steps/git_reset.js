@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import path from "node:path"
 import fs from "node:fs"
 import { execa } from "../libraries/execa"
@@ -23,7 +25,8 @@ export default async (pkg, step) => {
 
     Log.info(`Fetching from origin`)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
         status_text: `Fetching from origin...`,
     })
 
@@ -36,7 +39,8 @@ export default async (pkg, step) => {
 
     Log.info(`Cleaning untracked files...`)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
         status_text: `Cleaning untracked files...`,
     })
 
@@ -48,7 +52,8 @@ export default async (pkg, step) => {
 
     Log.info(`Resetting to ${from}`)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
         status_text: `Resetting to ${from}`,
     })
 
@@ -63,7 +68,8 @@ export default async (pkg, step) => {
 
     Log.info(`Checkout to HEAD`)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
         status_text: `Checkout to HEAD`,
     })
 

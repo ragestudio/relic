@@ -4,17 +4,24 @@ import classnames from "classnames"
 
 import BarLoader from "react-spinners/BarLoader"
 
-import { MdFolder, MdDelete, MdPlayArrow, MdUpdate, MdOutlineMoreVert, MdSettings, MdInfoOutline } from "react-icons/md"
+import { MdCode, MdFolder, MdDelete, MdPlayArrow, MdUpdate, MdOutlineMoreVert, MdSettings, MdInfoOutline } from "react-icons/md"
 
 import "./index.less"
 
 const PackageItem = (props) => {
     const [manifest, setManifest] = React.useState(props.manifest)
 
-    const isLoading = manifest.status === "installing" || manifest.status === "uninstalling" || manifest.status === "loading"
-    const isInstalled = manifest.status === "installed"
-    const isInstalling = manifest.status === "installing"
-    const isFailed = manifest.status === "error"
+    const isLoading = manifest.last_status === "loading" || manifest.last_status === "installing" || manifest.last_status === "updating"
+    const isInstalling = manifest.last_status === "installing"
+    const isInstalled = !!manifest.installed_at
+    const isFailed = manifest.last_status === "error"
+
+    console.log(manifest, {
+        isLoading,
+        isInstalling,
+        isInstalled,
+        isFailed
+    })
 
     const onClickUpdate = () => {
         antd.Modal.confirm({
@@ -65,7 +72,7 @@ const PackageItem = (props) => {
 
     function renderStatusLine(manifest) {
         if (isLoading) {
-            return manifest.status
+            return manifest.last_status
         }
 
         return `v${manifest.version}` ?? "N/A"
@@ -111,10 +118,10 @@ const PackageItem = (props) => {
     }
 
     React.useEffect(() => {
-        ipc.on(`pkg:update:status:${manifest.id}`, handleUpdate)
+        ipc.on(`pkg:update:state:${manifest.id}`, handleUpdate)
 
         return () => {
-            ipc.off(`pkg:update:status:${manifest.id}`, handleUpdate)
+            ipc.off(`pkg:update:state:${manifest.id}`, handleUpdate)
         }
     }, [])
 
@@ -126,12 +133,21 @@ const PackageItem = (props) => {
         className={classnames(
             "installation_item_wrapper",
             {
-                ["status_visible"]: !isInstalled
+                ["status_visible"]: isLoading,
+                ["loading"]: isLoading,
+                ["installing"]: isInstalling,
             }
         )}
     >
         <div className="installation_item">
-            <img src={manifest.icon} className="installation_item_icon" />
+            {
+                !manifest.icon && <MdCode className="installation_item_icon" />
+            }
+
+            {
+                manifest.icon && <img src={manifest.icon} className="installation_item_icon" />
+            }
+
 
             <div className="installation_item_info">
                 <h2>
@@ -163,7 +179,9 @@ const PackageItem = (props) => {
                         type="primary"
                         trigger={["click"]}
                     >
-                        <MdPlayArrow />
+                        <MdPlayArrow
+                            disabled={isLoading}
+                        />
                     </antd.Dropdown.Button>
                 }
 
@@ -198,7 +216,9 @@ const PackageItem = (props) => {
                 isLoading && <BarLoader color={getRootCssVar("--primary-color")} className="app_loader" />
             }
 
-            <p>{manifest.statusText ?? "Unknown status"}</p>
+            {
+                manifest.status_text && <p>{manifest.status_text}</p>
+            }
         </div>
     </div>
 }

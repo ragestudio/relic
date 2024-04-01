@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
-import downloadHttpFile from "../helpers/downloadHttpFile"
+import axios from "axios"
+import checksum from "checksum"
 
 import Vars from "../vars"
 
@@ -15,13 +16,19 @@ export async function readManifest(manifest) {
             fs.mkdirSync(Vars.cache_path, { recursive: true })
         }
 
-        const cachedManifest = await downloadHttpFile(manifest, path.resolve(Vars.cache_path, `${Date.now()}.rmanifest`))
+        const { data: code } = await axios.get(target)
+
+        const manifestChecksum = checksum(code, { algorithm: "md5" })
+
+        const cachedManifest = path.join(Vars.cache_path, `${manifestChecksum}.rmanifest`)
+
+        await fs.promises.writeFile(cachedManifest, code)
 
         return {
             remote_manifest: manifest,
             local_manifest: cachedManifest,
             is_catched: true,
-            code: fs.readFileSync(cachedManifest, "utf8"),
+            code: code,
         }
     } else {
         if (!fs.existsSync(target)) {

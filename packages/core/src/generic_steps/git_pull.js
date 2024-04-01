@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import path from "node:path"
 import fs from "node:fs"
 import { execa } from "../libraries/execa"
@@ -14,7 +16,8 @@ export default async (pkg, step) => {
     const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
     const _path = path.resolve(pkg.install_path, step.path)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
         status_text: `Pulling...`,
     })
 

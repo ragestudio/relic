@@ -1,3 +1,6 @@
+import Logger from "../logger"
+
+import DB from "../db"
 import fs from "node:fs"
 
 import GenericSteps from "../generic_steps"
@@ -11,27 +14,44 @@ export default class PatchManager {
         this.log = Logger.child({ service: `PATCH-MANAGER|${pkg.id}` })
     }
 
-    async get(patch) {
+    async get(select) {
         if (!this.manifest.patches) {
             return []
         }
 
         let list = []
 
-        if (typeof patch === "undefined") {
+        if (typeof select === "undefined") {
             list = this.manifest.patches
-        } else {
-            list = this.manifest.patches.find((p) => p.id === patch.id)
+        }
+
+        if (Array.isArray(select)) {
+            for await (let id of select) {
+                const patch = this.manifest.patches.find((patch) => patch.id === id)
+
+                if (patch) {
+                    list.push(patch)
+                }
+            }
         }
 
         return list
     }
 
-    async patch(patch) {
-        const list = await this.get(patch)
+    async reapply() {
+        if (Array.isArray(this.pkg.applied_patches)) {
+            return await this.patch(this.pkg.applied_patches)
+        }
+
+        return true
+    }
+
+    async patch(select) {
+        const list = await this.get(select)
 
         for await (let patch of list) {
-            global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: this.pkg.id,
                 status_text: `Applying patch [${patch.id}]...`,
             })
 
@@ -41,12 +61,6 @@ export default class PatchManager {
                 this.log.info(`Applying ${patch.additions.length} Additions...`)
 
                 for await (let addition of patch.additions) {
-                    this.log.info(`Applying addition [${addition.id}]...`)
-
-                    global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
-                        status_text: `Applying addition [${additions.id}]...`,
-                    })
-
                     // resolve patch file
                     addition.file = await parseStringVars(addition.file, this.pkg)
 
@@ -55,14 +69,26 @@ export default class PatchManager {
                         continue
                     }
 
+                    this.log.info(`Applying addition [${addition.file}]`)
+
+                    global._relic_eventBus.emit(`pkg:update:state`, {
+                        id: this.pkg.id,
+                        status_text: `Applying addition [${addition.file}]`,
+                    })
+
                     await GenericSteps(this.pkg, addition.steps, this.log)
                 }
             }
 
-            pkg.applied_patches.push(patch.id)
+            if (!this.pkg.applied_patches.includes(patch.id)) {
+                this.pkg.applied_patches.push(patch.id)
+            }
         }
 
-        global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
+        await DB.updatePackageById(this.pkg.id, { applied_patches: this.pkg.applied_patches })
+
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: this.pkg.id,
             status_text: `${list.length} Patches applied`,
         })
 
@@ -71,42 +97,48 @@ export default class PatchManager {
         return this.pkg
     }
 
-    async remove(patch) {
-        const list = await this.get(patch)
+    async remove(select) {
+        const list = await this.get(select)
 
         for await (let patch of list) {
-            global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: this.pkg.id,
                 status_text: `Removing patch [${patch.id}]...`,
             })
 
-            Log.info(`Removing patch [${patch.id}]...`)
+            this.log.info(`Removing patch [${patch.id}]...`)
 
             if (Array.isArray(patch.additions)) {
                 this.log.info(`Removing ${patch.additions.length} Additions...`)
 
                 for await (let addition of patch.additions) {
-                    this.log.info(`Removing addition [${addition.id}]...`)
-
-                    global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
-                        status_text: `Removing addition [${additions.id}]...`,
-                    })
-
                     addition.file = await parseStringVars(addition.file, this.pkg)
 
                     if (!fs.existsSync(addition.file)) {
+                        this.log.info(`Addition [${addition.file}] does not exist. Skipping...`)
                         continue
                     }
+
+                    this.log.info(`Removing addition [${addition.file}]`)
+
+                    global._relic_eventBus.emit(`pkg:update:state`, {
+                        id: this.pkg.id,
+                        status_text: `Removing addition [${addition.file}]`,
+                    })
 
                     await fs.promises.unlink(addition.file)
                 }
             }
 
-            pkg.applied_patches = pkg.applied_patches.filter((p) => {
+            this.pkg.applied_patches = this.pkg.applied_patches.filter((p) => {
                 return p !== patch.id
             })
         }
 
-        global._relic_eventBus.emit(`pkg:update:state:${this.pkg.id}`, {
+        await DB.updatePackageById(this.pkg.id, { applied_patches: this.pkg.applied_patches })
+
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: this.pkg.id,
             status_text: `${list.length} Patches removed`,
         })
 

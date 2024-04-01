@@ -15,6 +15,7 @@ const commands = [
         ],
         fn: async (package_manifest, options) => {
             await core.initialize()
+            await core.setup()
 
             return await core.package.install(package_manifest, options)
         }
@@ -30,6 +31,7 @@ const commands = [
         ],
         fn: async (pkg_id, options) => {
             await core.initialize()
+            await core.setup()
 
             return await core.package.execute(pkg_id, options)
         }
@@ -45,6 +47,7 @@ const commands = [
         ],
         fn: async (pkg_id, options) => {
             await core.initialize()
+            await core.setup()
 
             return await core.package.update(pkg_id, options)
         }

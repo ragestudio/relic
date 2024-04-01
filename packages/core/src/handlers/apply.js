@@ -1,28 +1,30 @@
+import Logger from "../logger"
+
+import PatchManager from "../classes/PatchManager"
 import ManifestReader from "../manifest/reader"
 import ManifestVM from "../manifest/vm"
 import DB from "../db"
 
 const BaseLog = Logger.child({ service: "APPLIER" })
 
-function findPatch(manifest, changes, mustBeInstalled) {
-    return manifest.patches
-        .filter((patch) => {
-            const patchID = patch.id
+function findPatch(patches, applied_patches, changes, mustBeInstalled) {
+    return patches.filter((patch) => {
+        const patchID = patch.id
 
-            if (typeof changes.patches[patchID] === "undefined") {
-                return false
-            }
-
-            if (mustBeInstalled === true && !manifest.applied_patches.includes(patch.id) && changes.patches[patchID] === true) {
-                return true
-            }
-
-            if (mustBeInstalled === false && manifest.applied_patches.includes(patch.id) && changes.patches[patchID] === false) {
-                return true
-            }
-
+        if (typeof changes.patches[patchID] === "undefined") {
             return false
-        })
+        }
+
+        if (mustBeInstalled === true && !applied_patches.includes(patch.id) && changes.patches[patchID] === true) {
+            return true
+        }
+
+        if (mustBeInstalled === false && applied_patches.includes(patch.id) && changes.patches[patchID] === false) {
+            return true
+        }
+
+        return false
+    }).map((patch) => patch.id)
 }
 
 export default async function apply(pkg_id, changes = {}) {
@@ -35,11 +37,18 @@ export default async function apply(pkg_id, changes = {}) {
         }
 
         let manifest = await ManifestReader(pkg.local_manifest)
-        manifest = await ManifestVM(ManifestRead.code)
+        manifest = await ManifestVM(manifest.code)
 
         const Log = Logger.child({ service: `APPLIER|${pkg.id}` })
 
         Log.info(`Applying changes to package...`)
+        Log.info(`Changes: ${JSON.stringify(changes)}`)
+
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
+            status_text: `Applying changes to package...`,
+            last_status: "loading",
+        })
 
         if (changes.patches) {
             if (!Array.isArray(pkg.applied_patches)) {
@@ -48,8 +57,8 @@ export default async function apply(pkg_id, changes = {}) {
 
             const patches = new PatchManager(pkg, manifest)
 
-            await patches.remove(findPatch(manifest, changes, false))
-            await patches.patch(findPatch(manifest, changes, true))
+            await patches.remove(findPatch(manifest.patches, pkg.applied_patches, changes, false))
+            await patches.patch(findPatch(manifest.patches, pkg.applied_patches, changes, true))
         }
 
         if (changes.config) {
@@ -64,15 +73,19 @@ export default async function apply(pkg_id, changes = {}) {
 
         await DB.writePackage(pkg)
 
-        global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
-            state: "All changes applied",
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
+            status_text: "All changes applied",
         })
 
         Log.info(`All changes applied to package.`)
 
         return pkg
     } catch (error) {
-        global._relic_eventBus.emit(`pkg:${pkg_id}:error`, error)
+        global._relic_eventBus.emit(`pkg:error`, {
+            id: pkg_id,
+            error
+        })
 
         BaseLog.error(`Failed to apply changes to package [${pkg_id}]`, error)
         BaseLog.error(error.stack)

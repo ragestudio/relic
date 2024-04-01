@@ -15,7 +15,9 @@ export default class DB {
     static defaultPackageState({
         id,
         name,
+        icon,
         version,
+        author,
         install_path,
         description,
         license,
@@ -23,13 +25,16 @@ export default class DB {
         remote_manifest,
         local_manifest,
         config,
+        executable,
     }) {
         return {
             id: id,
             name: name,
             version: version,
+            icon: icon,
             install_path: install_path,
             description: description,
+            author: author,
             license: license ?? "unlicensed",
             local_manifest: local_manifest ?? null,
             remote_manifest: remote_manifest ?? null,
@@ -38,6 +43,7 @@ export default class DB {
             last_status: last_status ?? "installing",
             last_update: null,
             installed_at: null,
+            executable: executable ?? false,
         }
     }
 
@@ -72,31 +78,27 @@ export default class DB {
     static async writePackage(pkg) {
         const db = await this.withDB()
 
-        await db.update((data) => {
-            const prevIndex = data["packages"].findIndex((i) => i.id === pkg.id)
+        const prevIndex = db.data["packages"].findIndex((i) => i.id === pkg.id)
 
-            if (prevIndex !== -1) {
-                data["packages"][prevIndex] = pkg
-            } else {
-                data["packages"].push(pkg)
-            }
+        if (prevIndex !== -1) {
+            db.data["packages"][prevIndex] = pkg
+        } else {
+            db.data["packages"].push(pkg)
+        }
 
-            return data
-        })
+        await db.write()
 
-        return pkg
+        return db.data
     }
 
     static async updatePackageById(pkg_id, obj) {
-        const pkg = await this.getPackages(pkg_id)
+        let pkg = await this.getPackages(pkg_id)
 
         if (!pkg) {
             throw new Error("Package not found")
         }
 
-        pkg = lodash.merge(pkg, obj)
-
-        return await this.writePackage(pkg)
+        return await this.writePackage(lodash.merge({ ...pkg }, obj))
     }
 
     static async deletePackage(pkg_id) {

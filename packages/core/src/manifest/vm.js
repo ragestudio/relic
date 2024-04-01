@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import os from "node:os"
 import vm from "node:vm"
 import path from "node:path"
@@ -8,7 +10,15 @@ import FetchLibraries from "./libraries"
 
 import Vars from "../vars"
 
-async function BuildManifest(baseClass, context, soft = false) {
+async function BuildManifest(baseClass, context, { soft = false } = {}) {
+    // inject install_path
+    context.install_path = path.resolve(Vars.packages_path, baseClass.id)
+    baseClass.install_path = context.install_path
+
+    if (soft === true) {
+        return baseClass
+    }
+
     const configManager = new ManifestConfigManager(baseClass.id)
 
     await configManager.initialize()
@@ -21,10 +31,6 @@ async function BuildManifest(baseClass, context, soft = false) {
             ...baseClass.useLib
         ]
     }
-
-    // inject install_path
-    context.install_path = path.resolve(Vars.packages_path, baseClass.id)
-    baseClass.install_path = context.install_path
 
     // modify context
     context.Log = Logger.child({ service: `VM|${baseClass.id}` })
@@ -46,7 +52,7 @@ function injectUseManifest(code) {
     return code + "\n\nuse(Manifest);"
 }
 
-export default async (code) => {
+export default async (code, { soft = false } = {}) => {
     return await new Promise(async (resolve, reject) => {
         try {
             code = injectUseManifest(code)
@@ -55,7 +61,13 @@ export default async (code) => {
                 Vars: Vars,
                 Log: Logger.child({ service: "MANIFEST_VM" }),
                 use: (baseClass) => {
-                    BuildManifest(baseClass, context).then(resolve)
+                    return BuildManifest(
+                        baseClass,
+                        context,
+                        {
+                            soft: soft,
+                        }
+                    ).then(resolve)
                 },
                 os_string: resolveOs(),
                 arch: os.arch(),

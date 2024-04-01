@@ -1,6 +1,6 @@
 import React from "react"
 import * as antd from "antd"
-import { Icons, Icon } from "components/Icons"
+import { Icon } from "components/Icons"
 
 import settingsList from "@renderer/settings_list"
 

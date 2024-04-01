@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import path from "node:path"
 import fs from "node:fs"
 import upath from "upath"
@@ -21,8 +23,9 @@ export default async (pkg, step) => {
 
     Log.info(`Cloning from [${step.url}]`)
 
-    global._relic_eventBus.emit(`pkg:update:state:${pkg.id}`, {
-        status_text: `Cloning from [${step.url}]...`,
+    global._relic_eventBus.emit(`pkg:update:state`, {
+        id: pkg.id,
+        status_text: `Cloning from [${step.url}]`,
     })
 
     const args = [

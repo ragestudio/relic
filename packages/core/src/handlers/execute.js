@@ -1,7 +1,8 @@
+import Logger from "../logger"
+
 import fs from "node:fs"
 
 import DB from "../db"
-import SetupHelper from "../helpers/setup"
 import ManifestReader from "../manifest/reader"
 import ManifestVM from "../manifest/vm"
 import parseStringVars from "../utils/parseStringVars"
@@ -18,8 +19,6 @@ export default async function execute(pkg_id, { useRemote = false, force = false
             return false
         }
 
-        await SetupHelper()
-
         const manifestPath = useRemote ? pkg.remote_manifest : pkg.local_manifest
 
         if (!fs.existsSync(manifestPath)) {
@@ -29,6 +28,12 @@ export default async function execute(pkg_id, { useRemote = false, force = false
 
             return false
         }
+
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
+            last_status: "loading",
+            status_text: null,
+        })
 
         const ManifestRead = await ManifestReader(manifestPath)
 
@@ -52,9 +57,18 @@ export default async function execute(pkg_id, { useRemote = false, force = false
             })
         }
 
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
+            last_status: "installed",
+            status_text: null,
+        })
+
         return pkg
     } catch (error) {
-        global._relic_eventBus.emit(`pkg:${pkg_id}:error`, error)
+        global._relic_eventBus.emit(`pkg:error`, {
+            id: pkg_id,
+            error
+        })
 
         BaseLog.error(`Failed to execute package [${pkg_id}]`, error)
         BaseLog.error(error.stack)

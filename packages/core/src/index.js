@@ -9,13 +9,24 @@ import Logger from "./logger"
 import Vars from "./vars"
 import DB from "./db"
 
+import PackageInstall from "./handlers/install"
+import PackageExecute from "./handlers/execute"
+import PackageUninstall from "./handlers/uninstall"
+import PackageUpdate from "./handlers/update"
+import PackageApply from "./handlers/apply"
+import PackageList from "./handlers/list"
+import PackageRead from "./handlers/read"
+
 export default class RelicCore {
     constructor(params) {
         this.params = params
     }
 
     eventBus = global._relic_eventBus = new EventEmitter()
-    logger = global.Logger = Logger
+
+    logger = Logger
+
+    db = DB
 
     async initialize() {
         await DB.initialize()
@@ -34,12 +45,13 @@ export default class RelicCore {
     }
 
     package = {
-        install: require("./handlers/install").default,
-        execute: require("./handlers/execute").default,
-        uninstall: require("./handlers/uninstall").default,
-        update: require("./handlers/update").default,
-        apply: require("./handlers/apply").default,
-        list: require("./handlers/list").default,
+        install: PackageInstall,
+        execute: PackageExecute,
+        uninstall: PackageUninstall,
+        update: PackageUpdate,
+        apply: PackageApply,
+        list: PackageList,
+        read: PackageRead,
     }
 
     openPath(pkg_id) {

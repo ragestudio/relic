@@ -1,3 +1,5 @@
+import Logger from "../logger"
+
 import fs from "node:fs"
 import path from "node:path"
 import { pipeline as streamPipeline } from "node:stream/promises"

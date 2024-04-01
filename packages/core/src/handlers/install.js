@@ -1,7 +1,8 @@
+import Logger from "../logger"
+
 import fs from "node:fs"
 
 import DB from "../db"
-import SetupHelper from "../helpers/setup"
 import ManifestReader from "../manifest/reader"
 import ManifestVM from "../manifest/vm"
 import GenericSteps from "../generic_steps"
@@ -13,8 +14,6 @@ export default async function install(manifest) {
     let id = null
 
     try {
-        await SetupHelper()
-
         BaseLog.info(`Invoking new installation...`)
         BaseLog.info(`Fetching manifest [${manifest}]`)
 
@@ -44,6 +43,7 @@ export default async function install(manifest) {
         Log.info(`Appending to db...`)
 
         const pkg = DB.defaultPackageState({
+            ...manifest.constructor,
             id: id,
             name: manifest.constructor.pkg_name,
             version: manifest.constructor.version,
@@ -53,6 +53,7 @@ export default async function install(manifest) {
             last_status: "installing",
             remote_manifest: ManifestRead.remote_manifest,
             local_manifest: ManifestRead.local_manifest,
+            executable: !!manifest.execute
         })
 
         await DB.writePackage(pkg)
@@ -72,7 +73,8 @@ export default async function install(manifest) {
         if (typeof manifest.beforeInstall === "function") {
             Log.info(`Executing beforeInstall hook...`)
 
-            global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: pkg.id,
                 status_text: `Performing beforeInstall hook...`,
             })
 
@@ -82,7 +84,8 @@ export default async function install(manifest) {
         if (Array.isArray(manifest.installSteps)) {
             Log.info(`Executing generic install steps...`)
 
-            global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: pkg.id,
                 status_text: `Performing generic install steps...`,
             })
 
@@ -92,14 +95,16 @@ export default async function install(manifest) {
         if (typeof manifest.afterInstall === "function") {
             Log.info(`Executing afterInstall hook...`)
 
-            global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: pkg.id,
                 status_text: `Performing afterInstall hook...`,
             })
 
             await manifest.afterInstall(pkg)
         }
 
-        global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
             status_text: `Finishing up...`,
         })
 
@@ -119,7 +124,7 @@ export default async function install(manifest) {
         }
 
         pkg.local_manifest = finalPath
-        pkg.last_status = "installed"
+        pkg.last_status = "loading"
         pkg.installed_at = Date.now()
 
         await DB.writePackage(pkg)
@@ -130,7 +135,8 @@ export default async function install(manifest) {
             if (defaultPatches.length > 0) {
                 Log.info(`Applying default patches...`)
 
-                global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+                global._relic_eventBus.emit(`pkg:update:state`, {
+                    id: pkg.id,
                     status_text: `Applying default patches...`,
                 })
 
@@ -140,17 +146,30 @@ export default async function install(manifest) {
             }
         }
 
-        global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+        pkg.last_status = "installed"
+
+        await DB.writePackage(pkg)
+
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            ...pkg,
+            id: pkg.id,
+            last_status: "installed",
             status_text: `Installation completed successfully`,
         })
+
+        global._relic_eventBus.emit(`pkg:new:done`, pkg)
 
         Log.info(`Package installed successfully!`)
 
         return pkg
     } catch (error) {
-        global._relic_eventBus.emit(`pkg:${id}:error`, error)
+        global._relic_eventBus.emit(`pkg:error`, {
+            id: pkg.id,
+            error
+        })
 
-        global._relic_eventBus.emit(`pkg:update:state:${id}`, {
+        global._relic_eventBus.emit(`pkg:update:state`, {
+            id: pkg.id,
             last_status: "failed",
             status_text: `Installation failed`,
         })

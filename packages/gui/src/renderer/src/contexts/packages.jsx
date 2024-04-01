@@ -10,6 +10,9 @@ export class WithContext extends React.Component {
     }
 
     ipcEvents = {
+        "pkg:new:done": (event, data) => {
+            antd.message.success(`Successfully installed ${data.name}`)
+        },
         "pkg:new": (event, data) => {
             antd.message.loading(`Installing ${data.id}`)
 
@@ -42,7 +45,7 @@ export class WithContext extends React.Component {
                 })
             }
         },
-        "pkg:update:status": (event, data) => {
+        "pkg:update:state": (event, data) => {
             const { id } = data
 
             let newData = this.state.packages
@@ -60,7 +63,7 @@ export class WithContext extends React.Component {
                 })
             }
 
-            console.log(`[ipc] pkg:update:status >`, data)
+            console.log(`[ipc] pkg:update:state >`, data)
         }
     }
 

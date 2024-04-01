@@ -1,0 +1,38 @@
+{
+  "name": "@ragestudio/relic-core",
+  "version": "0.16.0",
+  "license": "MIT",
+  "author": "RageStudio",
+  "description": "RageStudio Relic, yet another package manager.",
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "hermes build"
+  },
+  "dependencies": {
+    "@foxify/events": "^2.1.0",
+    "adm-zip": "^0.5.12",
+    "axios": "^1.6.8",
+    "checksum": "^1.0.0",
+    "cli-color": "^2.0.4",
+    "cli-progress": "^3.12.0",
+    "extends-classes": "^1.0.5",
+    "googleapis": "^134.0.0",
+    "human-format": "^1.2.0",
+    "isolated-vm": "^4.7.2",
+    "merge-stream": "^2.0.0",
+    "module-alias": "^2.2.3",
+    "node-7z": "^3.0.0",
+    "open": "8.4.2",
+    "progress-stream": "^2.0.0",
+    "request": "^2.88.2",
+    "rimraf": "^5.0.5",
+    "unzipper": "^0.10.14",
+    "upath": "^2.0.1",
+    "uuid": "^9.0.1",
+    "winston": "^3.13.0"
+  }
+}

@@ -7,5 +7,16 @@
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "cSpell.words": [
+    "admzip",
+    "APPDATA",
+    "catched",
+    "execa",
+    "rclone",
+    "sevenzip",
+    "unzipper",
+    "upath",
+    "userdata"
+  ]
 }

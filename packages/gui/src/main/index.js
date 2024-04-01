@@ -1,5 +1,6 @@
-import sendToRender from "./utils/sendToRender"
+import RelicCore from "../../../core/src/index"
 
+import sendToRender from "./utils/sendToRender"
 global.SettingsStore = new Store({
 	name: "settings",
 	watch: true,
@@ -14,13 +15,8 @@ import Store from "electron-store"
 
 import pkg from "../../package.json"
 
-import setup from "./setup"
-
 import PkgManager from "./manager"
 import { readManifest } from "./utils/readManifest"
-
-import GoogleDriveAPI from "./lib/google_drive"
-
 import AuthService from "./auth"
 
 const { autoUpdater } = require("electron-differential-updater")
@@ -33,6 +29,8 @@ class ElectronApp {
 		this.pkgManager = new PkgManager()
 		this.win = null
 	}
+
+	core = new RelicCore()
 
 	authService = global.authService = new AuthService()
 
@@ -105,7 +103,7 @@ class ElectronApp {
 		},
 		"app:init": async (event, data) => {
 			try {
-				await setup()
+				await this.core.setup()
 			} catch (err) {
 				console.error(err)
 
@@ -115,14 +113,9 @@ class ElectronApp {
 				})
 			}
 
-			// check if can decode google drive token
-			const googleDrive_enabled = !!(await GoogleDriveAPI.readCredentials())
-
 			return {
 				pkg: pkg,
-				authorizedServices: {
-					drive: googleDrive_enabled
-				}
+				authorizedServices: {}
 			}
 		}
 	}
@@ -287,8 +280,6 @@ class ElectronApp {
 				app.setAsDefaultProtocolClient(protocolRegistryNamespace)
 			}
 		}
-
-		await GoogleDriveAPI.init()
 
 		await this.createWindow()
 

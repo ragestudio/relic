@@ -35,7 +35,6 @@ async function main() {
     let sevenzip_exec = Vars.sevenzip_path
     let git_exec = Vars.git_path
     let rclone_exec = Vars.rclone_path
-    let java_exec = Vars.java_path
 
     if (!fs.existsSync(sevenzip_exec)) {
         global.win.webContents.send("setup_step", "Downloading 7z binaries...")

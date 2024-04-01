@@ -7,7 +7,7 @@ const linkRoot = path.resolve(packagesPath, "core")
 
 const linkPackages = [
     path.resolve(packagesPath, "cli"),
-    //path.resolve(packagesPath, "gui"),
+    path.resolve(packagesPath, "gui"),
 ]
 
 async function main() {

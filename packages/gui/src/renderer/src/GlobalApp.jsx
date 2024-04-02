@@ -29,12 +29,6 @@ class GlobalStyleController {
 export default class GlobalCTXApp {
     static style = GlobalStyleController
 
-    static applyUpdate = () => {
-        message.loading("Updating, please wait...")
-
-        ipc.exec("updater:apply")
-    }
-
     static invokeInstall = (manifest) => {
         console.log(`installation invoked >`, manifest)
 
@@ -78,6 +72,12 @@ export default class GlobalCTXApp {
                 app.applyUpdate()
             }
         })
+    }
+
+    static applyUpdate = () => {
+        message.loading("Updating, please wait...")
+
+        ipc.exec("updater:apply")
     }
 
     static checkUpdates = () => {

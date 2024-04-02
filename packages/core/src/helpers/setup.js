@@ -92,7 +92,9 @@ export default async () => {
                         }
                     )
                 } catch (error) {
-                    await fs.promises.rm(prerequisite.destination)
+                    if (fs.existsSync(prerequisite.destination)) {
+                        await fs.promises.rm(prerequisite.destination)
+                    }
 
                     throw error
                 }
@@ -153,6 +155,12 @@ export default async () => {
 
                 if (Array.isArray(prerequisite.moveDirs)) {
                     for (const dir of prerequisite.moveDirs) {
+                        if (Array.isArray(dir.requireOs)) {
+                            if (!dir.requireOs.includes(resolveOs())) {
+                                continue
+                            }
+                        }
+
                         Log.info(`Moving ${dir.from} to ${dir.to}...`)
 
                         global._relic_eventBus.emit("app:setup", {
@@ -182,9 +190,10 @@ export default async () => {
                 message: error.message,
             })
 
-            Log.error(error)
             Log.error("Aborting setup due to an error...")
-            return false
+            Log.error(error)
+
+            throw error
         }
 
         Log.info(`All prerequisites are ready!`)

@@ -22,10 +22,12 @@ const Splash = (props) => {
 
         {
             globalState.appSetup.message && <>
+                <div className="app-setup_message-wrapper">
                 <div className="app-setup_message">
                     <span>
                         {globalState.appSetup.message}
                     </span>
+                </div>
                 </div>
 
                 <BarLoader

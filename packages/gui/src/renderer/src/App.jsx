@@ -59,7 +59,9 @@ class App extends React.Component {
       }
 
       this.setState({
-        updateAvailable: true,
+        appUpdate: {
+          available: true,
+        },
       })
 
       app.appUpdateAvailable(data)
@@ -79,15 +81,23 @@ class App extends React.Component {
       app.pkgUpdateAvailable(data)
     },
     "pkg:installation:invoked": (event, data) => {
-        if (this.state.initializing) {
-            return false
-        }
+      if (this.state.initializing) {
+        return false
+      }
 
-        app.invokeInstall(data)
+      app.invokeInstall(data)
+    },
+    "app:init:failed": (event, data) => {
+      this.setState({
+        crash: data,
+      })
     }
   }
 
   componentDidMount = async () => {
+    console.log(`React version > ${versions["react"]}`)
+    console.log(`DOMRouter version > ${versions["react-router-dom"]}`)
+
     window.app.style.appendClassname("initializing")
 
     for (const event in this.ipcEvents) {
@@ -96,9 +106,11 @@ class App extends React.Component {
 
     const mainInitialization = await ipc.exec("app:init")
 
-    console.log(`React version > ${versions["react"]}`)
-    console.log(`DOMRouter version > ${versions["react-router-dom"]}`)
     console.log(`app:init() | Result >`, mainInitialization)
+
+    if (mainInitialization.error) {
+      return false
+    }
 
     await this.setState({
       initializing: false,

@@ -3,7 +3,7 @@ global.SettingsStore = new Store({
 	watch: true,
 })
 
-import RelicCore from "@ragestudio/relic-core/src"
+import RelicCore from "../../../core/src"
 import CoreAdapter from "./classes/CoreAdapter"
 
 import sendToRender from "./utils/sendToRender"
@@ -63,7 +63,16 @@ class ElectronApp {
 		"pkg:uninstall": async (event, pkg_id) => {
 			return await this.core.package.uninstall(pkg_id)
 		},
-		"pkg:execute": async (event, pkg_id) => {
+		"pkg:execute": async (event, pkg_id, { force = false } = {}) => {
+			// check for updates first
+			if (!force) {
+				const update = await this.core.package.checkUpdate(pkg_id)
+
+				if (update) {
+					return sendToRender("pkg:update_available", update)
+				}
+			}
+
 			return await this.core.package.execute(pkg_id)
 		},
 		"pkg:open": async (event, pkg_id) => {
@@ -93,18 +102,22 @@ class ElectronApp {
 			try {
 				await this.core.initialize()
 				await this.core.setup()
-			} catch (err) {
-				console.error(err)
 
-				sendToRender("new:notification", {
-					message: "Setup failed",
-					description: err.message
+				return {
+					pkg: pkg,
+					authorizedServices: {}
+				}
+			} catch (error) {
+				console.error(error)
+
+				sendToRender("app:init:failed", {
+					message: "Initalization failed",
+					error: error,
 				})
-			}
 
-			return {
-				pkg: pkg,
-				authorizedServices: {}
+				return {
+					error
+				}
 			}
 		}
 	}

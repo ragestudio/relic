@@ -16,7 +16,7 @@ const PackageUpdateAvailable = ({ update, close }) => {
     }
 
     function handleUpdate() {
-        ipc.exec("pkg:update", update.manifest.id, {
+        ipc.exec("pkg:update", update.id, {
             execOnFinish: true
         })
 
@@ -24,7 +24,7 @@ const PackageUpdateAvailable = ({ update, close }) => {
     }
 
     function handleContinue() {
-        ipc.exec("pkg:execute", update.manifest.id, {
+        ipc.exec("pkg:execute", update.id, {
             force: true
         })
 
@@ -38,7 +38,7 @@ const PackageUpdateAvailable = ({ update, close }) => {
 
         <code>
             <p>
-                <b>{update.current_version}</b> {`->`} <b>{update.new_version}</b>
+                <b>{update.local}</b> {`->`} <b>{update.remote}</b>
             </p>
         </code>
 

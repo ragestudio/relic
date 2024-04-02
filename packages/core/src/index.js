@@ -17,6 +17,7 @@ import PackageApply from "./handlers/apply"
 import PackageList from "./handlers/list"
 import PackageRead from "./handlers/read"
 import PackageAuthorize from "./handlers/authorize"
+import PackageCheckUpdate from "./handlers/checkUpdate"
 
 export default class RelicCore {
     constructor(params) {
@@ -26,6 +27,8 @@ export default class RelicCore {
     eventBus = global._relic_eventBus = new EventEmitter()
 
     logger = Logger
+
+    db = DB
 
     async initialize() {
         await DB.initialize()
@@ -52,6 +55,7 @@ export default class RelicCore {
         list: PackageList,
         read: PackageRead,
         authorize: PackageAuthorize,
+        checkUpdate: PackageCheckUpdate
     }
 
     openPath(pkg_id) {

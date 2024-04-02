@@ -26,7 +26,7 @@ export default [
     {
         id: "rclone-bin",
         finalBin: Vars.rclone_bin,
-        url: resolveRemoteBinPath(`${baseURL}/rclone-bin`, "rclone-bin.zip"),
+        url: resolveRemoteBinPath(`${baseURL}/rclone`, "rclone-bin.zip"),
         destination: path.resolve(Vars.binaries_path, "rclone-bin.zip"),
         extract: path.resolve(Vars.binaries_path, "rclone-bin"),
         requireOs: ["win32"],
@@ -58,6 +58,7 @@ export default [
         extractTargetFromName: true,
         moveDirs: [
             {
+                requireOs: ["macos"],
                 from: path.resolve(Vars.binaries_path, "java_jre_bin", "zulu-22.jre", "Contents"),
                 to: path.resolve(Vars.binaries_path, "java_jre_bin", "Contents"),
                 deleteParentBefore: true

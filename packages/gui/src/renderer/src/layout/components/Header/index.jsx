@@ -62,13 +62,13 @@ const Header = (props) => {
                             }
 
                             {
-                                ctx.updateAvailable && <antd.Button
+                                ctx.appUpdate?.available && <antd.Button
                                     size="small"
                                     icon={<Icons.MdDownload />}
                                     onClick={app.applyUpdate}
                                     type="primary"
                                 >
-                                    Update now
+                                    Update app
                                 </antd.Button>
                             }
 

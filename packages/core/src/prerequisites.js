@@ -34,15 +34,15 @@ export default [
         deleteBeforeExtract: true,
     },
     {
-        id: "java_jre_bin",
-        finalBin: Vars.java_jre_bin,
+        id: "java22_jre_bin",
+        finalBin: Vars.java22_jre_bin,
         url: async (os, arch) => {
             const { data } = await axios({
                 method: "GET",
                 url: "https://api.azul.com/metadata/v1/zulu/packages",
                 params: {
                     arch: arch,
-                    java_version: "JAVA_22",
+                    java_version: "22",
                     os: os,
                     archive_type: "zip",
                     javafx_bundled: "false",
@@ -53,18 +53,52 @@ export default [
 
             return data[0].download_url
         },
-        destination: path.resolve(Vars.binaries_path, "java-jre.zip"),
-        extract: path.resolve(Vars.binaries_path, "java_jre_bin"),
+        destination: path.resolve(Vars.binaries_path, "java22-jre.zip"),
+        extract: path.resolve(Vars.binaries_path, "java22_jre_bin"),
         extractTargetFromName: true,
         moveDirs: [
             {
                 requireOs: ["macos"],
-                from: path.resolve(Vars.binaries_path, "java_jre_bin", "zulu-22.jre", "Contents"),
-                to: path.resolve(Vars.binaries_path, "java_jre_bin", "Contents"),
+                from: path.resolve(Vars.binaries_path, "java22_jre_bin", "zulu-22.jre", "Contents"),
+                to: path.resolve(Vars.binaries_path, "java22_jre_bin", "Contents"),
                 deleteParentBefore: true
             }
         ],
-        rewriteExecutionPermission: path.resolve(Vars.binaries_path, "java_jre_bin"),
+        rewriteExecutionPermission: path.resolve(Vars.binaries_path, "java22_jre_bin"),
+        deleteBeforeExtract: true,
+    },
+    {
+        id: "java17_jre_bin",
+        finalBin: Vars.java17_jre_bin,
+        url: async (os, arch) => {
+            const { data } = await axios({
+                method: "GET",
+                url: "https://api.azul.com/metadata/v1/zulu/packages",
+                params: {
+                    arch: arch,
+                    java_version: "17",
+                    os: os,
+                    archive_type: "zip",
+                    javafx_bundled: "false",
+                    java_package_type: "jre",
+                    page_size: "1",
+                }
+            })
+
+            return data[0].download_url
+        },
+        destination: path.resolve(Vars.binaries_path, "java17-jre.zip"),
+        extract: path.resolve(Vars.binaries_path, "java17_jre_bin"),
+        extractTargetFromName: true,
+        moveDirs: [
+            {
+                requireOs: ["macos"],
+                from: path.resolve(Vars.binaries_path, "java17_jre_bin", "zulu-17.jre", "Contents"),
+                to: path.resolve(Vars.binaries_path, "java17_jre_bin", "Contents"),
+                deleteParentBefore: true
+            }
+        ],
+        rewriteExecutionPermission: path.resolve(Vars.binaries_path, "java17_jre_bin"),
         deleteBeforeExtract: true,
     },
 ]

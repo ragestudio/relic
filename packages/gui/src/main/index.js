@@ -2,12 +2,6 @@ global.SettingsStore = new Store({
 	name: "settings",
 	watch: true,
 })
-
-const RelicCore = require("@ragestudio/relic-core").default
-import CoreAdapter from "./classes/CoreAdapter"
-
-import sendToRender from "./utils/sendToRender"
-
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
@@ -15,6 +9,16 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils"
 import isDev from "electron-is-dev"
 import Store from "electron-store"
 
+let RelicCore = null
+
+if (isDev) {
+	RelicCore = require("../../../core").default
+} else {
+	RelicCore = require("@ragestudio/relic-core").default
+}
+
+import CoreAdapter from "./classes/CoreAdapter"
+import sendToRender from "./utils/sendToRender"
 import pkg from "../../package.json"
 
 const { autoUpdater } = require("electron-differential-updater")

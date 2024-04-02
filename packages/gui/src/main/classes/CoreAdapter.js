@@ -130,8 +130,12 @@ export default class CoreAdapter {
 
         window.webContents.send("logger:new", {
             timestamp: new Date().getTime(),
-            message: "Core adapter Logger attached",
+            message: "Core adapter attached...",
         })
+    }
+
+    detachLogger = () => {
+        this.loggerWindow = null
     }
 
     initialize = async () => {

@@ -32,17 +32,40 @@ export default async () => {
             if (!fs.existsSync(prerequisite.finalBin)) {
                 Log.info(`Missing prerequisite: ${prerequisite.id}, installing...`)
 
+                global._relic_eventBus.emit("app:setup", {
+                    installed: false,
+                    message: `Installing ${prerequisite.id}`,
+                })
+
                 if (fs.existsSync(prerequisite.destination)) {
                     Log.info(`Deleting temporal file [${prerequisite.destination}]`)
+
+                    global._relic_eventBus.emit("app:setup", {
+                        installed: false,
+                        message: `Deleting temporal file [${prerequisite.destination}]`,
+                    })
+
                     await fs.promises.rm(prerequisite.destination)
                 }
 
                 if (fs.existsSync(prerequisite.extract)) {
                     Log.info(`Deleting temporal directory [${prerequisite.extract}]`)
+
+                    global._relic_eventBus.emit("app:setup", {
+                        installed: false,
+                        message: `Deleting temporal directory [${prerequisite.extract}]`,
+                    })
+
                     await fs.promises.rm(prerequisite.extract, { recursive: true })
                 }
 
                 Log.info(`Creating base directory: ${Vars.binaries_path}/${prerequisite.id}...`)
+
+                global._relic_eventBus.emit("app:setup", {
+                    installed: false,
+                    message: `Creating base directory: ${Vars.binaries_path}/${prerequisite.id}`,
+                })
+
                 await fs.promises.mkdir(path.resolve(Vars.binaries_path, prerequisite.id), { recursive: true })
 
                 if (typeof prerequisite.url === "function") {
@@ -52,10 +75,21 @@ export default async () => {
 
                 Log.info(`Downloading ${prerequisite.id} from [${prerequisite.url}] to destination [${prerequisite.destination}]...`)
 
+                global._relic_eventBus.emit("app:setup", {
+                    installed: false,
+                    message: `Starting download ${prerequisite.id} from [${prerequisite.url}] to destination [${prerequisite.destination}]`,
+                })
+
                 try {
                     await downloadFile(
                         prerequisite.url,
-                        prerequisite.destination
+                        prerequisite.destination,
+                        (progress) => {
+                            global._relic_eventBus.emit("app:setup", {
+                                installed: false,
+                                message: `Downloaded ${progress.transferredString} / ${progress.totalString} | ${progress.speedString}/s`,
+                            })
+                        }
                     )
                 } catch (error) {
                     await fs.promises.rm(prerequisite.destination)
@@ -65,6 +99,11 @@ export default async () => {
 
                 if (typeof prerequisite.extract === "string") {
                     Log.info(`Extracting ${prerequisite.id} to destination [${prerequisite.extract}]...`)
+
+                    global._relic_eventBus.emit("app:setup", {
+                        installed: false,
+                        message: `Extracting ${prerequisite.id} to destination [${prerequisite.extract}]`,
+                    })
 
                     const zip = new admzip(prerequisite.destination)
 
@@ -88,6 +127,12 @@ export default async () => {
 
                 if (prerequisite.deleteBeforeExtract === true) {
                     Log.info(`Deleting temporal file [${prerequisite.destination}]`)
+
+                    global._relic_eventBus.emit("app:setup", {
+                        installed: false,
+                        message: `Deleting temporal file [${prerequisite.destination}]`,
+                    })
+
                     await fs.promises.unlink(prerequisite.destination)
                 }
 
@@ -97,12 +142,23 @@ export default async () => {
                         prerequisite.finalBin
 
                     Log.info(`Rewriting permissions to ${to}...`)
+
+                    global._relic_eventBus.emit("app:setup", {
+                        installed: false,
+                        message: `Rewriting permissions to ${to}`,
+                    })
+
                     await chmodRecursive(to, 0o755)
                 }
 
                 if (Array.isArray(prerequisite.moveDirs)) {
                     for (const dir of prerequisite.moveDirs) {
                         Log.info(`Moving ${dir.from} to ${dir.to}...`)
+
+                        global._relic_eventBus.emit("app:setup", {
+                            installed: false,
+                            message: `Moving ${dir.from} to ${dir.to}`,
+                        })
 
                         await fs.promises.rename(dir.from, dir.to)
 
@@ -113,8 +169,19 @@ export default async () => {
                 }
             }
 
+            global._relic_eventBus.emit("app:setup", {
+                installed: true,
+                message: null,
+            })
+
             Log.info(`Prerequisite: ${prerequisite.id} is ready!`)
         } catch (error) {
+            global._relic_eventBus.emit("app:setup", {
+                installed: false,
+                error: error,
+                message: error.message,
+            })
+
             Log.error(error)
             Log.error("Aborting setup due to an error...")
             return false

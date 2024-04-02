@@ -1,5 +1,6 @@
 import open from "open"
 import axios from "axios"
+import ManifestAuthDB from "../../../classes/ManifestAuthDB"
 
 export default class Auth {
     constructor(ctx) {
@@ -7,31 +8,24 @@ export default class Auth {
     }
 
     async get() {
-        return {
-            assigned_username: "test",
-        }
+        const storagedData = await ManifestAuthDB.get(this.manifest.id)
 
-        const authData = global.authService.getAuth(this.manifest.id)
+        if (storagedData && this.manifest.authService) {
+            if (!this.manifest.authService.getter) {
+                return storagedData
+            }
 
-        console.log(authData)
-
-        if (authData && this.manifest.auth && this.manifest.auth.getter) {
             const result = await axios({
                 method: "POST",
-                url: this.manifest.auth.getter,
+                url: this.manifest.authService.getter,
                 headers: {
                     "Content-Type": "application/json",
                 },
                 data: {
-                    auth_data: authData,
+                    auth_data: storagedData,
                 }
             }).catch((err) => {
-                sendToRender(`new:notification`, {
-                    type: "error",
-                    message: "Failed to authorize",
-                    description: err.response.data.message ?? err.response.data.error ?? err.message,
-                    duration: 10
-                })
+                global._relic_eventBus.emit("auth:getter:error", err)
 
                 return err
             })
@@ -41,20 +35,19 @@ export default class Auth {
             }
 
             console.log(result.data)
-            
+
             return result.data
         }
 
-        return authData
+        return storagedData
     }
 
     request() {
-        return true
-        if (!this.manifest.auth) {
+        if (!this.manifest.authService || !this.manifest.authService.fetcher) {
             return false
         }
 
-        const authURL = this.manifest.auth.fetcher
+        const authURL = this.manifest.authService.fetcher
 
         open(authURL)
     }

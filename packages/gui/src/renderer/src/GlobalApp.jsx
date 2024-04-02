@@ -10,7 +10,25 @@ globalThis.getRootCssVar = getRootCssVar
 globalThis.notification = notification
 globalThis.message = message
 
+class GlobalStyleController {
+    static root = document.getElementById("root")
+
+    static appendClassname = (classname) => {
+        console.log(`appending classname >`, classname)
+        GlobalStyleController.root.classList.add(classname)
+    }
+
+    static removeClassname = (classname) => {
+        console.log(`removing classname >`, classname)
+        GlobalStyleController.root.classList.remove(classname)
+    }
+
+    static getRootCssVar = getRootCssVar
+}
+
 export default class GlobalCTXApp {
+    static style = GlobalStyleController
+
     static applyUpdate = () => {
         message.loading("Updating, please wait...")
 

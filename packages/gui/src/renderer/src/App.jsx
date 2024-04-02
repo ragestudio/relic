@@ -17,26 +17,24 @@ window.app = GlobalApp
 
 class App extends React.Component {
   state = {
-    loading: true,
+    initializing: true,
     pkg: null,
-    initializing: false,
 
-    setup_step: null,
-    updateAvailable: false,
-    updateText: null,
-
-    authorizedServices: {
-      drive: false,
+    appSetup: {
+      error: false,
+      installed: false,
+      message: null,
     },
+
+    appUpdate: {
+      changelog: null,
+      available: false,
+    },
+
+    authorizedServices: [],
   }
 
   ipcEvents = {
-    "runtime:error": (event, data) => {
-      antd.message.error(data)
-    },
-    "runtime:info": (event, data) => {
-      antd.message.info(data)
-    },
     "new:notification": (event, data) => {
       app.notification[data.type || "info"]({
         message: data.message,
@@ -50,8 +48,13 @@ class App extends React.Component {
     "new:message": (event, data) => {
       antd.message[data.type || "info"](data.message)
     },
+    "app:setup": (event, data) => {
+      this.setState({
+        appSetup: data,
+      })
+    },
     "app:update_available": (event, data) => {
-      if (this.state.loading) {
+      if (this.state.initializing) {
         return false
       }
 
@@ -62,73 +65,49 @@ class App extends React.Component {
       app.appUpdateAvailable(data)
     },
     "pkg:install:ask": (event, data) => {
-      if (this.state.loading) {
+      if (this.state.initializing) {
         return false
       }
 
       app.pkgInstallWizard(data)
     },
     "pkg:update_available": (event, data) => {
-      if (this.state.loading) {
+      if (this.state.initializing) {
         return false
       }
 
       app.pkgUpdateAvailable(data)
     },
-    "installation:invoked": (event, manifest) => {
-      if (this.state.loading) {
-        return false
-      }
+    "pkg:installation:invoked": (event, data) => {
+        if (this.state.initializing) {
+            return false
+        }
 
-      app.invokeInstall(manifest)
-    },
-    "drive:authorized": (event, data) => {
-      this.setState({
-        authorizedServices: {
-          drive: true,
-        },
-      })
-
-      message.success("Google Drive API authorized")
-    },
-    "drive:unauthorized": (event, data) => {
-      this.setState({
-        authorizedServices: {
-          drive: false,
-        },
-      })
-
-      message.success("Google Drive API unauthorized")
-    },
-    "setup_step": (event, data) => {
-      console.log(`setup:step`, data)
-
-      this.setState({
-        setup_step: data,
-      })
-    },
+        app.invokeInstall(data)
+    }
   }
 
   componentDidMount = async () => {
-    const initResult = await ipc.exec("app:init")
-
-    console.log(`Using React version > ${versions["react"]}`)
-    console.log(`Using DOMRouter version > ${versions["react-router-dom"]}`)
-    console.log(`[APP] app:init() | Result >`, initResult)
+    window.app.style.appendClassname("initializing")
 
     for (const event in this.ipcEvents) {
       ipc.exclusiveListen(event, this.ipcEvents[event])
     }
 
+    const mainInitialization = await ipc.exec("app:init")
+
+    console.log(`React version > ${versions["react"]}`)
+    console.log(`DOMRouter version > ${versions["react-router-dom"]}`)
+    console.log(`app:init() | Result >`, mainInitialization)
+
+    await this.setState({
+      initializing: false,
+      pkg: mainInitialization.pkg,
+    })
+
     app.location.push("/")
 
-    this.setState({
-      loading: false,
-      pkg: initResult.pkg,
-      authorizedServices: {
-        drive: initResult.authorizedServices?.drive ?? false
-      },
-    })
+    window.app.style.removeClassname("initializing")
   }
 
   render() {

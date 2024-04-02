@@ -5,8 +5,8 @@ export const Context = React.createContext([])
 
 export class WithContext extends React.Component {
     state = {
+        loading: true,
         packages: [],
-        pendingInstallation: false,
     }
 
     ipcEvents = {
@@ -62,24 +62,27 @@ export class WithContext extends React.Component {
                     packages: newData
                 })
             }
-
-            console.log(`[ipc] pkg:update:state >`, data)
         }
     }
 
-    componentDidMount = async () => {
+    loadPackages = async () => {
+        await this.setState({
+            loading: true,
+        })
+
         const packages = await ipc.exec("pkg:list")
 
+        await this.setState({
+            packages: packages,
+        })
+    }
+
+    componentDidMount = async () => {
         for (const event in this.ipcEvents) {
             ipc.exclusiveListen(event, this.ipcEvents[event])
         }
 
-        this.setState({
-            packages: [
-                ...this.state.packages,
-                ...packages,
-            ]
-        })
+        await this.loadPackages()
     }
 
     render() {

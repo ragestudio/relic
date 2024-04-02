@@ -19,7 +19,7 @@ export default class CoreAdapter {
             if (!data.id) {
                 return false
             }
-            
+
             if (data.use_id_only === true) {
                 return sendToRender(`pkg:update:state:${data.id}`, data)
             }
@@ -28,6 +28,33 @@ export default class CoreAdapter {
         },
         "pkg:new:done": (pkg) => {
             sendToRender("pkg:new:done", pkg)
+        },
+        "app:setup": (data) => {
+            sendToRender("app:setup", data)
+        },
+        "auth:getter:error": (err) => {
+            sendToRender(`new:notification`, {
+                type: "error",
+                message: "Failed to authorize",
+                description: err.response.data.message ?? err.response.data.error ?? err.message,
+                duration: 10
+            })
+        },
+        "pkg:authorized": (pkg) => {
+            sendToRender(`new:notification`, {
+                type: "success",
+                message: "Package authorized",
+                description: `${pkg.name} has been authorized! You can start the package now.`,
+            })
+        },
+        "pkg:error": (data) => {
+            sendToRender(`new:notification`, {
+                type: "error",
+                message: `An error occurred`,
+                description: `Something failed to ${data.event} package ${data.pkg_id}`,
+            })
+
+            sendToRender(`pkg:update:state`, data)
         }
     }
 

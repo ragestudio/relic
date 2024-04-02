@@ -67,7 +67,9 @@ export default async function execute(pkg_id, { useRemote = false, force = false
     } catch (error) {
         global._relic_eventBus.emit(`pkg:error`, {
             id: pkg_id,
-            error
+            event: "execute",
+            last_status: "installed",
+            error,
         })
 
         BaseLog.error(`Failed to execute package [${pkg_id}]`, error)

@@ -1,5 +1,4 @@
 import React from "react"
-import BarLoader from "react-spinners/BarLoader"
 import { Skeleton } from "antd"
 
 import { HashRouter, Route, Routes, useNavigate, useParams } from "react-router-dom"
@@ -7,12 +6,14 @@ import loadable from "@loadable/component"
 
 import GlobalStateContext from "contexts/global"
 
+import SplashScreen from "components/Splash"
+
 const DefaultNotFoundRender = () => {
     return <div>Not found</div>
 }
 
 const DefaultLoadingRender = () => {
-    return <Skeleton active />
+    return <SplashScreen />
 }
 
 const BuildPageController = (route, element, bindProps) => {
@@ -155,19 +156,8 @@ export const PageRender = (props) => {
 
     const globalState = React.useContext(GlobalStateContext)
 
-    if (globalState.setup_step || globalState.loading) {
-        return <div className="app_setup">
-            <BarLoader
-                className="app_loader"
-                color={getRootCssVar("--primary-color")}
-            />
-
-            <h1>Setting up...</h1>
-
-            <code>
-                <pre>{globalState.setup_step}</pre>
-            </code>
-        </div>
+    if (globalState.initializing) {
+        return <SplashScreen />
     }
 
     return <Routes>

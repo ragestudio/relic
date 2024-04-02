@@ -1,4 +1,4 @@
-.installations_manager {
+.packages {
     display: flex;
     flex-direction: column;
 
@@ -6,17 +6,52 @@
 
     gap: 10px;
 
-    .installations_manager-header {
+    .packages-header {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
 
         .ant-btn-default {
             background-color: var(--background-color-secondary);
         }
+
+        .add-btn {
+            display: flex;
+            flex-direction: row;
+
+            padding: 5px;
+            border-radius: 12px;
+            gap: 0px;
+
+            span:not(.ant-btn-icon) {
+                opacity: 0;
+
+                transition: all 150ms ease;
+
+                max-width: 0px;
+            }
+
+            &:hover {
+                padding: 5px 10px;
+                border-radius: 8px;
+
+                gap: 7px;
+
+                span:not(.ant-btn-icon) {
+                    opacity: 1;
+                    max-width: 200px;
+                }
+            }
+
+            .ant-btn-icon {
+                margin: 0;
+
+                font-size: 1.2rem;
+            }
+        }
     }
 
-    .installations_list {
+    .packages-list {
         display: flex;
         flex-direction: column;
 

@@ -10,25 +10,26 @@ import NewInstallation from "components/NewInstallation"
 
 import "./index.less"
 
-class InstallationsManager extends React.Component {
+class Packages extends React.Component {
     static contextType = InstallationsContext
 
     render() {
-        const { packages } = this.context
+        const { packages, loading } = this.context
 
         const empty = packages.length == 0
 
-        return <div className="installations_manager">
-            <div className="installations_manager-header">
+        return <div className="packages">
+            <div className="packages-header">
                 <antd.Button
                     type="primary"
                     icon={<MdAdd />}
                     onClick={() => app.drawer.open(NewInstallation, {
-                        title: "Add new installation",
+                        title: "Install new package",
                         height: "200px",
                     })}
+                    className="add-btn"
                 >
-                    Add new installation
+                    Add new
                 </antd.Button>
 
                 <antd.Input.Search
@@ -39,13 +40,17 @@ class InstallationsManager extends React.Component {
                 />
             </div>
 
-            <div className={empty ? "installations_list empty" : "installations_list"}>
+            <div className={empty ? "packages-list empty" : "packages-list"}>
                 {
-                    empty && <antd.Empty description="No packages installed" />
+                    loading && <antd.Skeleton active round />
                 }
 
                 {
-                    packages.map((manifest) => {
+                    !loading && empty && <antd.Empty description="No packages installed" />
+                }
+
+                {
+                    !loading && packages.map((manifest) => {
                         return <PackageItem key={manifest.id} manifest={manifest} />
                     })
                 }
@@ -54,10 +59,10 @@ class InstallationsManager extends React.Component {
     }
 }
 
-const InstallationsManagerPage = (props) => {
+const PackagesPage = (props) => {
     return <WithContext>
-        <InstallationsManager {...props} />
+        <Packages {...props} />
     </WithContext>
 }
 
-export default InstallationsManagerPage
+export default PackagesPage

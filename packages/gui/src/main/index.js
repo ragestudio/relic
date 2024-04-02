@@ -169,18 +169,18 @@ class ElectronApp {
 					case "authorize": {
 						if (!explicitAction[2]) {
 							const [pkg_id, token] = explicitAction[1].split("%23")
-							return this.core.auth.authorize(pkg_id, token)
+							return this.core.package.authorize(pkg_id, token)
 						} else {
-							return this.core.auth.authorize(explicitAction[1], explicitAction[2])
+							return this.core.package.authorize(explicitAction[1], explicitAction[2])
 						}
 					}
 					default: {
-						return sendToRender("installation:invoked", explicitAction[0])
+						return sendToRender("pkg:installation:invoked", explicitAction[0])
 					}
 				}
 			} else {
 				// by default if no action is specified, assume is a install action
-				return sendToRender("installation:invoked", urlValue)
+				return sendToRender("pkg:installation:invoked", urlValue)
 			}
 		}
 	}

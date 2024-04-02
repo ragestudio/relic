@@ -1,14 +1,11 @@
 import winston from "winston"
+import WinstonTransport from "winston-transport"
 import colors from "cli-color"
 
 const servicesToColor = {
     "CORE": {
         color: "whiteBright",
         background: "bgBlackBright",
-    },
-    "INSTALL": {
-        color: "whiteBright",
-        background: "bgBlueBright",
     },
 }
 
@@ -27,6 +24,13 @@ const format = winston.format.printf(({ timestamp, service = "CORE", level, mess
     return `${paintText(level, service, `(${level}) [${service}]`)} > ${message}`
 })
 
+class EventBusTransport extends WinstonTransport {
+    log(info, next) {
+        global._relic_eventBus.emit(`logger:new`, info)
+        next()
+    }
+}
+
 export default winston.createLogger({
     format: winston.format.combine(
         winston.format.timestamp(),
@@ -34,6 +38,7 @@ export default winston.createLogger({
     ),
     transports: [
         new winston.transports.Console(),
+        new EventBusTransport(),
         //new winston.transports.File({ filename: "error.log", level: "error" }),
         //new winston.transports.File({ filename: "combined.log" }),
     ],

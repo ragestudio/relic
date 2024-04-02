@@ -7,7 +7,6 @@ import loadable from "@loadable/component"
 import GlobalStateContext from "contexts/global"
 
 import SplashScreen from "components/Splash"
-import CrashError from "components/Crash"
 
 const DefaultNotFoundRender = () => {
     return <div>Not found</div>
@@ -131,18 +130,6 @@ export const InternalRouter = (props) => {
 }
 
 export const PageRender = (props) => {
-    const globalState = React.useContext(GlobalStateContext)
-
-    if (globalState.crash) {
-        return <CrashError
-            crash={globalState.crash}
-        />
-    }
-
-    if (globalState.initializing) {
-        return <SplashScreen />
-    }
-
     const routes = React.useMemo(() => {
         let paths = {
             ...import.meta.glob("/src/pages/**/[a-z[]*.jsx"),
@@ -166,6 +153,12 @@ export const PageRender = (props) => {
 
         return paths
     }, [])
+
+    const globalState = React.useContext(GlobalStateContext)
+
+    if (globalState.initializing) {
+        return <SplashScreen />
+    }
 
     return <Routes>
         {

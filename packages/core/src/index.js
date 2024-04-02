@@ -18,6 +18,7 @@ import PackageList from "./handlers/list"
 import PackageRead from "./handlers/read"
 import PackageAuthorize from "./handlers/authorize"
 import PackageCheckUpdate from "./handlers/checkUpdate"
+import PackageLastOperationRetry from "./handlers/lastOperationRetry"
 
 export default class RelicCore {
     constructor(params) {
@@ -55,7 +56,8 @@ export default class RelicCore {
         list: PackageList,
         read: PackageRead,
         authorize: PackageAuthorize,
-        checkUpdate: PackageCheckUpdate
+        checkUpdate: PackageCheckUpdate,
+        lastOperationRetry: PackageLastOperationRetry,
     }
 
     openPath(pkg_id) {

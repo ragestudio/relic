@@ -116,9 +116,20 @@ export default async function update(pkg_id) {
         return pkg
     } catch (error) {
         global._relic_eventBus.emit(`pkg:error`, {
+            event: "update",
             id: pkg_id,
-            error
+            error,
+            last_status: "failed"
         })
+
+        try {
+            await DB.updatePackageById(pkg_id, {
+                last_status: "failed",
+            })
+        } catch (error) {
+            BaseLog.error(`Failed to update status of pkg [${pkg_id}]`)
+            BaseLog.error(error.stack)
+        }
 
         BaseLog.error(`Failed to update package [${pkg_id}]`, error)
         BaseLog.error(error.stack)

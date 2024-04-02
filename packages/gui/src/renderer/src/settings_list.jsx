@@ -20,6 +20,7 @@ export default [
         render: (props) => {
           return (
             <Button
+              disabled
               type={props.value ? "primary" : "default"}
               onClick={() => {
                 if (!props.value) {
@@ -65,7 +66,10 @@ export default [
         icon: "MdUpdate",
         type: "switch",
         storaged: true,
-        defaultValue: false
+        defaultValue: false,
+        props: {
+          disabled: true
+        }
       }
     ]
   },
@@ -83,7 +87,7 @@ export default [
         props: {
           children: "Open",
           onClick: () => {
-            ipc.send("open-runtime-path")
+            ipc.exec("core:open-path")
           }
         },
         storaged: false
@@ -97,7 +101,7 @@ export default [
         props: {
           children: "Open",
           onClick: () => {
-            ipc.send("open-dev-logs")
+            ipc.exec("app:open-logs")
           }
         },
         storaged: false

@@ -307,8 +307,6 @@ const PackageOptionsLoader = (props) => {
         })
     }
 
-    console.log(manifest)
-
     if (!manifest) {
         return <antd.Skeleton active />
     }

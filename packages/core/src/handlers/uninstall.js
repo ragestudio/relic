@@ -20,21 +20,33 @@ export default async function uninstall(pkg_id) {
         const Log = Logger.child({ service: `UNINSTALLER|${pkg.id}` })
 
         Log.info(`Uninstalling package...`)
+
         global._relic_eventBus.emit(`pkg:update:state`, {
             id: pkg.id,
             status_text: `Uninstalling package...`,
         })
 
-        const ManifestRead = await ManifestReader(pkg.local_manifest)
-        const manifest = await ManifestVM(ManifestRead.code)
+        try {
+            const ManifestRead = await ManifestReader(pkg.local_manifest)
+            const manifest = await ManifestVM(ManifestRead.code)
 
-        if (typeof manifest.uninstall === "function") {
-            Log.info(`Performing uninstall hook...`)
-            global._relic_eventBus.emit(`pkg:update:state`, {
+            if (typeof manifest.uninstall === "function") {
+                Log.info(`Performing uninstall hook...`)
+
+                global._relic_eventBus.emit(`pkg:update:state`, {
+                    id: pkg.id,
+                    status_text: `Performing uninstall hook...`,
+                })
+
+                await manifest.uninstall(pkg)
+            }
+        } catch (error) {
+            Log.error(`Failed to perform uninstall hook`, error)
+            global._relic_eventBus.emit(`pkg:error`, {
+                event: "uninstall",
                 id: pkg.id,
-                status_text: `Performing uninstall hook...`,
+                error
             })
-            await manifest.uninstall(pkg)
         }
 
         Log.info(`Deleting package directory...`)
@@ -62,6 +74,7 @@ export default async function uninstall(pkg_id) {
         return pkg
     } catch (error) {
         global._relic_eventBus.emit(`pkg:error`, {
+            event: "uninstall",
             id: pkg_id,
             error
         })

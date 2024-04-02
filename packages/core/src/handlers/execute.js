@@ -19,6 +19,20 @@ export default async function execute(pkg_id, { useRemote = false, force = false
             return false
         }
 
+        if (pkg.last_status !== "installed") {
+            if (!force) {
+                BaseLog.info(`Package not installed [${pkg_id}], aborting execution`)
+
+                global._relic_eventBus.emit(`pkg:error`, {
+                    id: pkg_id,
+                    event: "execute",
+                    error: new Error("Package not valid or not installed"),
+                })
+
+                return false
+            }
+        }
+
         const manifestPath = useRemote ? pkg.remote_manifest : pkg.local_manifest
 
         if (!fs.existsSync(manifestPath)) {

@@ -12,13 +12,18 @@ import AppDrawer from "layout/components/Drawer"
 
 import { InternalRouter, PageRender } from "./router.jsx"
 
+import CrashError from "components/Crash"
+import LogsViewer from "./pages/logs"
+
 // create a global app context
 window.app = GlobalApp
 
 class App extends React.Component {
   state = {
-    initializing: true,
     pkg: null,
+
+    crash: null,
+    initializing: true,
 
     appSetup: {
       error: false,
@@ -98,6 +103,15 @@ class App extends React.Component {
     console.log(`React version > ${versions["react"]}`)
     console.log(`DOMRouter version > ${versions["react-router-dom"]}`)
 
+    //check if path is /logs
+    if (window.location.pathname === "/logs") {
+      return await this.setState({
+        initializing: false,
+        no_layout: true,
+        log_viewer_mode: true,
+      })
+    }
+
     window.app.style.appendClassname("initializing")
 
     for (const event in this.ipcEvents) {
@@ -133,17 +147,34 @@ class App extends React.Component {
         algorithm: antd.theme.darkAlgorithm
       }}
     >
-      <InternalRouter>
-        <GlobalStateContext.Provider value={this.state}>
+      {
+        this.state.log_viewer_mode && <LogsViewer />
+      }
 
-          <AppDrawer />
-          <AppModalDialog />
+      {
+        !this.state.log_viewer_mode && <>
+          <InternalRouter>
+            <GlobalStateContext.Provider value={this.state}>
+              {
+                !this.state.crash && <>
+                  <AppDrawer />
+                  <AppModalDialog />
 
-          <AppLayout>
-            <PageRender />
-          </AppLayout>
-        </GlobalStateContext.Provider>
-      </InternalRouter>
+                  <AppLayout>
+                    <PageRender />
+                  </AppLayout>
+                </>
+              }
+
+              {
+                this.state.crash && <CrashError
+                  crash={this.state.crash}
+                />
+              }
+            </GlobalStateContext.Provider>
+          </InternalRouter>
+        </>
+      }
     </antd.ConfigProvider>
   }
 }

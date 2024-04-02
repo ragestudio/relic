@@ -39,6 +39,15 @@ export async function readManifest(manifest) {
             throw new Error(`Manifest is not a file: ${target}`)
         }
 
+        // copy to cache
+        const cachedManifest = path.join(Vars.cache_path, path.basename(target))
+
+        await fs.promises.copyFile(target, cachedManifest)
+
+        if (!fs.existsSync(cachedManifest)) {
+            throw new Error(`Manifest copy failed: ${target}`)
+        }
+
         return {
             remote_manifest: undefined,
             local_manifest: target,

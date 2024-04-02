@@ -164,12 +164,13 @@ export default async function install(manifest) {
         return pkg
     } catch (error) {
         global._relic_eventBus.emit(`pkg:error`, {
-            id: id,
-            error
+            id: id ?? manifest.constructor.id,
+            event: "install",
+            error,
         })
 
         global._relic_eventBus.emit(`pkg:update:state`, {
-            id: id,
+            id: id ?? manifest.constructor.id,
             last_status: "failed",
             status_text: `Installation failed`,
         })

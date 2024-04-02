@@ -14,7 +14,7 @@ const PackageItem = (props) => {
     const isLoading = manifest.last_status === "loading" || manifest.last_status === "installing" || manifest.last_status === "updating"
     const isInstalling = manifest.last_status === "installing"
     const isInstalled = !!manifest.installed_at
-    const isFailed = manifest.last_status === "error"
+    const isFailed = manifest.last_status === "failed"
 
     console.log(manifest, {
         isLoading,
@@ -38,7 +38,7 @@ const PackageItem = (props) => {
     }
 
     const onClickFolder = () => {
-        ipc.exec("pkg:open", manifest.id)
+        ipc.exec("core:open-path", manifest.id)
     }
 
     const onClickDelete = () => {
@@ -60,7 +60,7 @@ const PackageItem = (props) => {
     }
 
     const onClickRetryInstall = () => {
-        ipc.exec("pkg:retry_install", manifest.id)
+        ipc.exec("pkg:last_operation_retry", manifest.id)
     }
 
     function handleUpdate(event, data) {
@@ -75,7 +75,7 @@ const PackageItem = (props) => {
             return manifest.last_status
         }
 
-        return `v${manifest.version}` ?? "N/A"
+        return `${isFailed ? "failed |" : ""} v${manifest.version}` ?? "N/A"
     }
 
     const MenuProps = {
@@ -148,7 +148,6 @@ const PackageItem = (props) => {
                 manifest.icon && <img src={manifest.icon} className="installation_item_icon" />
             }
 
-
             <div className="installation_item_info">
                 <h2>
                     {
@@ -164,16 +163,24 @@ const PackageItem = (props) => {
 
             <div className="installation_item_actions">
                 {
-                    isFailed && <antd.Button
-                        type="primary"
-                        onClick={onClickRetryInstall}
-                    >
-                        Retry
-                    </antd.Button>
+                    isFailed && <>
+                        <antd.Button
+                            type="primary"
+                            onClick={onClickRetryInstall}
+                        >
+                            Retry
+                        </antd.Button>
+
+                        <antd.Button
+                            icon={<MdDelete />}
+                            type="primary"
+                            onClick={onClickDelete}
+                        />
+                    </>
                 }
 
                 {
-                    isInstalled && manifest.executable && <antd.Dropdown.Button
+                    !isFailed && isInstalled && manifest.executable && <antd.Dropdown.Button
                         menu={MenuProps}
                         onClick={onClickPlay}
                         type="primary"
@@ -186,7 +193,7 @@ const PackageItem = (props) => {
                 }
 
                 {
-                    isInstalled && !manifest.executable && <antd.Dropdown
+                    isFailed && isInstalled && !manifest.executable && <antd.Dropdown
                         menu={MenuProps}
                         disabled={isLoading}
                     >
@@ -199,7 +206,7 @@ const PackageItem = (props) => {
                 }
 
                 {
-                    isInstalling && <antd.Button
+                    isFailed && isInstalling && <antd.Button
                         type="primary"
                         onClick={onClickCancelInstall}
                     >

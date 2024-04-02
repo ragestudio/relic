@@ -83,6 +83,7 @@ export default async function apply(pkg_id, changes = {}) {
         return pkg
     } catch (error) {
         global._relic_eventBus.emit(`pkg:error`, {
+            event: "apply",
             id: pkg_id,
             error
         })

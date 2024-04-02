@@ -32,7 +32,7 @@ export default (event, data) => {
             return copy
         }
 
-        global.win.webContents.send(event, serializeIpc(data))
+        global.mainWindow.webContents.send(event, serializeIpc(data))
     } catch (error) {
         console.error(error)
     }

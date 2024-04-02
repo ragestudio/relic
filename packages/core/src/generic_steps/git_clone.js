@@ -33,6 +33,7 @@ export default async (pkg, step) => {
         //`--depth ${step.depth ?? 1}`,
         //"--filter=blob:none",
         //"--filter=tree:0",
+        "--progress",
         "--recurse-submodules",
         "--remote-submodules",
         step.url,

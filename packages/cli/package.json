@@ -1,6 +1,6 @@
 {
   "name": "@ragestudio/relic-cli",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "license": "MIT",
   "author": "RageStudio",
   "description": "RageStudio Relic, yet another package manager.",
@@ -13,10 +13,7 @@
     "build": "hermes build"
   },
   "dependencies": {
-    "commander": "^12.0.0",
-    "glob": "^10.3.12",
-    "lowdb": "^7.0.1",
-    "yargs": "^17.7.2"
+    "commander": "^12.0.0"
   },
   "devDependencies": {
     "@ragestudio/hermes": "^0.1.1"

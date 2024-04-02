@@ -3,7 +3,7 @@ global.SettingsStore = new Store({
 	watch: true,
 })
 
-import RelicCore from "../../../core/src"
+const RelicCore = require("@ragestudio/relic-core").default
 import CoreAdapter from "./classes/CoreAdapter"
 
 import sendToRender from "./utils/sendToRender"

@@ -11,11 +11,11 @@ export async function readManifest(manifest) {
 
     const target = manifest?.remote_url ?? manifest
 
-    if (urlRegex.test(target)) {
-        if (!fs.existsSync(Vars.cache_path)) {
-            fs.mkdirSync(Vars.cache_path, { recursive: true })
-        }
+    if (!fs.existsSync(Vars.cache_path)) {
+        fs.mkdirSync(Vars.cache_path, { recursive: true })
+    }
 
+    if (urlRegex.test(target)) {
         const { data: code } = await axios.get(target)
 
         const manifestChecksum = checksum(code, { algorithm: "md5" })

@@ -1,0 +1,3 @@
+[submodule "relic-core"]
+	path = relic-core
+	url = https://github.com/ragestudio/relic-core

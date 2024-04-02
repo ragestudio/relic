@@ -103,8 +103,7 @@ class App extends React.Component {
     console.log(`React version > ${versions["react"]}`)
     console.log(`DOMRouter version > ${versions["react-router-dom"]}`)
 
-    //check if path is /logs
-    if (window.location.pathname === "/logs") {
+    if (window.location.hash === "#logs") {
       return await this.setState({
         initializing: false,
         no_layout: true,

@@ -44,9 +44,11 @@ class LogsViewer {
 		})
 
 		if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-			this.window.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}/logs`)
+			this.window.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}/#logs`)
 		} else {
-			this.window.loadFile(path.join(__dirname, "../renderer/index.html"))
+			this.window.loadFile(path.join(__dirname, "../renderer/index.html"), {
+				hash: "#logs",
+			})
 		}
 
 		await new Promise((resolve) => this.window.once("ready-to-show", resolve))
@@ -98,6 +100,10 @@ class ElectronApp {
 			const loggerWindow = await this.logsViewer.createWindow()
 
 			this.adapter.attachLogger(loggerWindow)
+
+			loggerWindow.on("closed", () => {
+				this.adapter.detachLogger()
+			})
 
 			loggerWindow.webContents.send("logger:new", {
 				timestamp: new Date().getTime(),

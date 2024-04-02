@@ -39,7 +39,11 @@ export default async function lastOperationRetry(pkg_id) {
                 break
             case "failed": {
                 // copy pkg.local_manifest to cache after uninstall
-                const cachedManifest = path.join(Vars.cache_path, path.basename(pkg.local_manifest))
+                const cachedManifest = path.join(Vars.cache_path, `${Date.now()}${path.basename(pkg.local_manifest)}`)
+
+                if (!fs.existsSync(Vars.cache_path)) {
+                    await fs.promises.mkdir(Vars.cache_path, { recursive: true })
+                }
 
                 await fs.promises.copyFile(pkg.local_manifest, cachedManifest)
 

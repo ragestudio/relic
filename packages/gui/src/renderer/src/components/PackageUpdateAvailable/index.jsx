@@ -44,7 +44,7 @@ const PackageUpdateAvailable = ({ update, close }) => {
 
         <div className="package-update-available_actions">
             <Button
-                onClick={handleContinue}
+                onClick={close}
             >
                 Cancel
             </Button>

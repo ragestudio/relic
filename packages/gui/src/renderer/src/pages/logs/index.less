@@ -1,0 +1,47 @@
+.app-logs {
+    display: flex;
+    flex-direction: column;
+
+    padding: 10px;
+
+    font-family: "DM Mono", monospace;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    height: 100vh;
+
+    .log-entry {
+        display: flex;
+        flex-direction: row;
+
+        align-items: flex-start;
+
+        gap: 7px;
+        font-size: 0.8rem;
+        line-height: 0.8rem;
+
+        border-radius: 8px;
+
+        padding: 8px;
+
+        color: var(--text-color);
+
+        span {
+            color: var(--text-color);
+
+            white-space: nowrap;
+            word-break: break-all;
+        }
+
+        .timestamp {
+            opacity: 0.9;
+
+            font-size: 0.7rem;
+        }
+
+        &:nth-child(odd) {
+            background-color: var(--background-color-secondary);
+        }
+    }
+}

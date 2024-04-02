@@ -59,6 +59,8 @@ export default async function apply(pkg_id, changes = {}) {
 
             await patches.remove(findPatch(manifest.patches, pkg.applied_patches, changes, false))
             await patches.patch(findPatch(manifest.patches, pkg.applied_patches, changes, true))
+
+            pkg = await DB.getPackages(pkg_id)
         }
 
         if (changes.config) {

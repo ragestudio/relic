@@ -42,7 +42,7 @@ export default async function install(manifest) {
 
         Log.info(`Appending to db...`)
 
-        const pkg = DB.defaultPackageState({
+        let pkg = DB.defaultPackageState({
             ...manifest.constructor,
             id: id,
             name: manifest.constructor.pkg_name,
@@ -140,7 +140,7 @@ export default async function install(manifest) {
                     status_text: `Applying default patches...`,
                 })
 
-                await Apply(id, {
+                pkg = await Apply(id, {
                     patches: Object.fromEntries(defaultPatches.map((patch) => [patch.id, true])),
                 })
             }

@@ -2,7 +2,6 @@ import { JSONFilePreset } from "./libraries/lowdb/presets/node"
 import Vars from "./vars"
 import pkg from "../package.json"
 import fs from "node:fs"
-import lodash from "lodash"
 
 export default class DB {
     static get defaultRoot() {
@@ -94,11 +93,15 @@ export default class DB {
     static async updatePackageById(pkg_id, obj) {
         let pkg = await this.getPackages(pkg_id)
 
+
         if (!pkg) {
             throw new Error("Package not found")
         }
 
-        return await this.writePackage(lodash.merge({ ...pkg }, obj))
+        return await this.writePackage({
+            ...pkg,
+            ...obj,
+        })
     }
 
     static async deletePackage(pkg_id) {

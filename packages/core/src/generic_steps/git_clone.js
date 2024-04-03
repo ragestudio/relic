@@ -14,7 +14,7 @@ export default async (pkg, step) => {
 
     const Log = Logger.child({ service: `GIT|${pkg.id}` })
 
-    const gitCMD = fs.existsSync(Vars.git_path) ? `${Vars.git_path}` : "git"
+    const gitCMD = fs.existsSync(Vars.git_bin) ? `${Vars.git_bin}` : "git"
     const final_path = upath.normalizeSafe(path.resolve(pkg.install_path, step.path))
 
     if (!fs.existsSync(final_path)) {

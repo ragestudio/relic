@@ -1,6 +1,7 @@
 import open from "open"
 import axios from "axios"
 import ManifestAuthDB from "../../../classes/ManifestAuthDB"
+import UnauthorizeMethod from "../../../handlers/deauthorize"
 
 export default class Auth {
     constructor(ctx) {
@@ -24,6 +25,14 @@ export default class Auth {
                 }
             }).catch((err) => {
                 global._relic_eventBus.emit("auth:getter:error", err)
+
+                try {
+                    UnauthorizeMethod(this.manifest.id).then(() => {
+                        this.request()
+                    })
+                } catch (error) {
+                    console.error(error)
+                }
 
                 return err
             })

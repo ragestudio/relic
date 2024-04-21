@@ -65,6 +65,9 @@ export default class CoreAdapter {
         "pkg:cancel_current_operation": async (event, pkg_id) => {
             return await this.core.package.cancelCurrentOperation(pkg_id)
         },
+        "pkg:delete_auth": async (event, pkg_id) => {
+            return await this.core.package.deauthorize(pkg_id)
+        },
         "core:open-path": async (event, pkg_id) => {
             return await this.core.openPath(pkg_id)
         },
@@ -107,6 +110,13 @@ export default class CoreAdapter {
                 type: "success",
                 message: "Package authorized",
                 description: `${pkg.name} has been authorized! You can start the package now.`,
+            })
+        },
+        "pkg:deauthorized": (pkg) => {
+            sendToRender(`new:notification`, {
+                type: "success",
+                message: "Package deauthorized",
+                description: `${pkg.name} has been deauthorized`,
             })
         },
         "pkg:error": (data) => {

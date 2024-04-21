@@ -17,6 +17,7 @@ import PackageApply from "./handlers/apply"
 import PackageList from "./handlers/list"
 import PackageRead from "./handlers/read"
 import PackageAuthorize from "./handlers/authorize"
+import PackageDeauthorize from "./handlers/deauthorize"
 import PackageCheckUpdate from "./handlers/checkUpdate"
 import PackageLastOperationRetry from "./handlers/lastOperationRetry"
 
@@ -56,6 +57,7 @@ export default class RelicCore {
         list: PackageList,
         read: PackageRead,
         authorize: PackageAuthorize,
+        deauthorize: PackageDeauthorize,
         checkUpdate: PackageCheckUpdate,
         lastOperationRetry: PackageLastOperationRetry,
     }

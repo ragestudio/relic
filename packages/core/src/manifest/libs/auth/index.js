@@ -16,13 +16,11 @@ export default class Auth {
             }
 
             const result = await axios({
-                method: "POST",
+                method: "GET",
                 url: this.manifest.authService.getter,
                 headers: {
                     "Content-Type": "application/json",
-                },
-                data: {
-                    auth_data: storagedData,
+                    "Authorization": `Bearer ${storagedData}`
                 }
             }).catch((err) => {
                 global._relic_eventBus.emit("auth:getter:error", err)

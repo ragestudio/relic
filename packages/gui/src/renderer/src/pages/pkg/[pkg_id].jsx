@@ -237,16 +237,14 @@ const PackageOptions = (props) => {
         </div>
 
         <div className="package_options-actions">
-            {
-                manifest.auth && <antd.Button
-                    onClick={handleDeleteAuth}
-                    type="default"
-                    size="small"
-                    disabled={loading}
-                >
-                    Delete auth
-                </antd.Button>
-            }
+            <antd.Button
+                onClick={handleDeleteAuth}
+                type="default"
+                size="small"
+                disabled={loading}
+            >
+                Delete auth
+            </antd.Button>
 
             <antd.Button
                 onClick={handleReinstall}

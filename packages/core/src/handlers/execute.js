@@ -43,6 +43,8 @@ export default async function execute(pkg_id, { useRemote = false, force = false
             return false
         }
 
+        BaseLog.info(`Executing manifest > [${manifestPath}]`)
+
         global._relic_eventBus.emit(`pkg:update:state`, {
             id: pkg.id,
             last_status: "loading",

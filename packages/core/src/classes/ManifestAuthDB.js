@@ -33,4 +33,12 @@ export default class ManifestAuthService {
 
         return await db.data[pkg_id]
     }
+
+    static delete = async (pkg_id) => {
+        const db = await this.withDB()
+
+        return await db.update((data) => {
+            delete data[pkg_id]
+        })
+    }
 }

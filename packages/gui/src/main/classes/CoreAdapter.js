@@ -98,10 +98,24 @@ export default class CoreAdapter {
             sendToRender("app:setup", data)
         },
         "auth:getter:error": (err) => {
+            let str = "Failed to authorize"
+
+            if (err.response.data.message) {
+                str = err.response.data.message
+            }
+
+            if (err.response.data.error) {
+                str = err.response.data.error
+            }
+
+            if (str.message) {
+                str = str.message
+            }
+
             sendToRender(`new:notification`, {
                 type: "error",
                 message: "Failed to authorize",
-                description: err.response.data.message ?? err.response.data.error ?? err.message,
+                description: str,
                 duration: 10
             })
         },

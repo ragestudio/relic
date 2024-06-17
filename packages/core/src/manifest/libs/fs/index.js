@@ -16,7 +16,7 @@ export default class SecureFileSystem {
     readFileSync(destination, options) {
         this.checkOutsideJail(destination)
 
-        return fs.readFileSync(finalPath, options)
+        return fs.readFileSync(destination, options)
     }
 
     copyFileSync(from, to) {
@@ -29,7 +29,7 @@ export default class SecureFileSystem {
     writeFileSync(destination, data, options) {
         this.checkOutsideJail(destination)
 
-        return fs.writeFileSync(finalPath, data, options)
+        return fs.writeFileSync(destination, data, options)
     }
 
     // don't need to check finalPath

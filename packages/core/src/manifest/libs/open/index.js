@@ -6,8 +6,7 @@ const Log = Logger.child({ service: "OPEN-LIB" })
 
 export default {
     spawn: async (...args) => {
-        Log.info("Open spawned with args >")
-        console.log(...args)
+        Log.info("Spawning with args >", args)
 
         return await open(...args)
     },

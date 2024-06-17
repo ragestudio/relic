@@ -12,6 +12,8 @@ import DB from "./db"
 import PackageInstall from "./handlers/install"
 import PackageExecute from "./handlers/execute"
 import PackageUninstall from "./handlers/uninstall"
+import PackageReinstall from "./handlers/reinstall"
+import PackageCancelInstall from "./handlers/cancelInstall"
 import PackageUpdate from "./handlers/update"
 import PackageApply from "./handlers/apply"
 import PackageList from "./handlers/list"
@@ -33,7 +35,12 @@ export default class RelicCore {
     db = DB
 
     async initialize() {
+        globalThis.relic_core = {
+            tasks: [],
+        }
+
         await DB.initialize()
+
 
         onExit(this.onExit)
     }
@@ -52,6 +59,8 @@ export default class RelicCore {
         install: PackageInstall,
         execute: PackageExecute,
         uninstall: PackageUninstall,
+        reinstall: PackageReinstall,
+        cancelInstall: PackageCancelInstall,
         update: PackageUpdate,
         apply: PackageApply,
         list: PackageList,

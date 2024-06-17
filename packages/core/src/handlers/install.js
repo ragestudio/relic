@@ -12,6 +12,7 @@ const BaseLog = Logger.child({ service: "INSTALLER" })
 
 export default async function install(manifest) {
     let id = null
+    let abortController = new AbortController()
 
     try {
         BaseLog.info(`Invoking new installation...`)
@@ -23,9 +24,19 @@ export default async function install(manifest) {
 
         id = manifest.constructor.id
 
+        globalThis.relic_core.tasks.push({
+            type: "install",
+            id: id,
+            abortController: abortController,
+        })
+
         const Log = BaseLog.child({ service: `INSTALLER|${id}` })
 
         Log.info(`Creating install path [${manifest.install_path}]`)
+
+        if (abortController.signal.aborted) {
+            return false
+        }
 
         if (fs.existsSync(manifest.install_path)) {
             Log.info(`Package already exists, removing...`)
@@ -36,11 +47,19 @@ export default async function install(manifest) {
 
         Log.info(`Initializing manifest...`)
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+
         if (typeof manifest.initialize === "function") {
             await manifest.initialize()
         }
 
         Log.info(`Appending to db...`)
+
+        if (abortController.signal.aborted) {
+            return false
+        }
 
         let pkg = DB.defaultPackageState({
             ...manifest.constructor,
@@ -60,6 +79,10 @@ export default async function install(manifest) {
 
         global._relic_eventBus.emit("pkg:new", pkg)
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+
         if (manifest.configuration) {
             Log.info(`Applying default config to package...`)
 
@@ -68,6 +91,10 @@ export default async function install(manifest) {
 
                 return acc
             }, {})
+        }
+
+        if (abortController.signal.aborted) {
+            return false
         }
 
         if (typeof manifest.beforeInstall === "function") {
@@ -81,6 +108,10 @@ export default async function install(manifest) {
             await manifest.beforeInstall(pkg)
         }
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+        
         if (Array.isArray(manifest.installSteps)) {
             Log.info(`Executing generic install steps...`)
 
@@ -89,7 +120,11 @@ export default async function install(manifest) {
                 status_text: `Performing generic install steps...`,
             })
 
-            await GenericSteps(pkg, manifest.installSteps, Log)
+            await GenericSteps(pkg, manifest.installSteps, Log, abortController)
+        }
+
+        if (abortController.signal.aborted) {
+            return false
         }
 
         if (typeof manifest.afterInstall === "function") {
@@ -112,6 +147,10 @@ export default async function install(manifest) {
 
         const finalPath = `${manifest.install_path}/.rmanifest`
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+
         if (fs.existsSync(finalPath)) {
             await fs.promises.unlink(finalPath)
         }
@@ -128,6 +167,10 @@ export default async function install(manifest) {
         pkg.installed_at = Date.now()
 
         await DB.writePackage(pkg)
+
+        if (abortController.signal.aborted) {
+            return false
+        }
 
         if (manifest.patches) {
             const defaultPatches = manifest.patches.filter((patch) => patch.default)
@@ -148,7 +191,13 @@ export default async function install(manifest) {
 
         pkg.last_status = "installed"
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+
         await DB.writePackage(pkg)
+
+        globalThis.relic_core.tasks.filter((task) => task.id !== id)
 
         global._relic_eventBus.emit(`pkg:update:state`, {
             ...pkg,
@@ -174,6 +223,8 @@ export default async function install(manifest) {
             last_status: "failed",
             status_text: `Installation failed`,
         })
+
+        globalThis.relic_core.tasks.filter((task) => task.id !== id)
 
         BaseLog.error(`Error during installation of package [${id}] >`, error)
         BaseLog.error(error.stack)

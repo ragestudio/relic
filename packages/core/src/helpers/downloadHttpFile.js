@@ -9,7 +9,7 @@ function convertSize(size) {
     })}B`
 }
 
-export default async (url, destination, progressCallback) => {
+export default async (url, destination, progressCallback, abortController) => {
     const progressBar = new cliProgress.SingleBar({
         format: "[{bar}] {percentage}% | {total_formatted} | {speed}/s | {eta_formatted}",
         barCompleteChar: "\u2588",
@@ -19,6 +19,7 @@ export default async (url, destination, progressCallback) => {
 
     const { data: remoteStream, headers } = await axios.get(url, {
         responseType: "stream",
+        signal: abortController?.signal,
     })
 
     const localStream = fs.createWriteStream(destination)

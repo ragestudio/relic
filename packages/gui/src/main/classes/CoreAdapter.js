@@ -44,6 +44,12 @@ export default class CoreAdapter {
         "pkg:uninstall": async (event, pkg_id) => {
             return await this.core.package.uninstall(pkg_id)
         },
+        "pkg:reinstall": async (event, pkg_id) => {
+            return await this.core.package.reinstall(pkg_id)
+        },
+        "pkg:cancel_install": async (event, pkg_id) => {
+            return await this.core.package.cancelInstall(pkg_id)  
+        },
         "pkg:execute": async (event, pkg_id, { force = false } = {}) => {
             // check for updates first
             if (!force) {

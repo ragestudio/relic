@@ -56,7 +56,13 @@ const PackageItem = (props) => {
     }
 
     const onClickCancelInstall = () => {
-        ipc.exec("pkg:cancel_install", manifest.id)
+        antd.Modal.confirm({
+            title: "Uninstall",
+            content: `Are you sure you want to cancel the installation? The package will not be installed and all data will be lost.`,
+            onOk: () => {
+                ipc.exec("pkg:cancel_install", manifest.id)
+            },
+        })
     }
 
     const onClickRetryInstall = () => {
@@ -162,6 +168,15 @@ const PackageItem = (props) => {
             </div>
 
             <div className="installation_item_actions">
+                {
+                    isInstalling && <antd.Button
+                        type="primary"
+                        onClick={onClickCancelInstall}
+                    >
+                        Cancel
+                    </antd.Button>
+                }
+
                 {
                     isFailed && <>
                         <antd.Button

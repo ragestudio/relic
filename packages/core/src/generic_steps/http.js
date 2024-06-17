@@ -6,7 +6,7 @@ import downloadHttpFile from "../helpers/downloadHttpFile"
 import parseStringVars from "../utils/parseStringVars"
 import extractFile from "../utils/extractFile"
 
-export default async (pkg, step, logger) => {
+export default async (pkg, step, logger, abortController) => {
     if (!step.path) {
         step.path = `./${path.basename(step.url)}`
     }
@@ -28,13 +28,18 @@ export default async (pkg, step, logger) => {
 
     fs.mkdirSync(path.resolve(_path, ".."), { recursive: true })
 
-    await downloadHttpFile(step.url, _path, (progress) => {
-        global._relic_eventBus.emit(`pkg:update:state`, {
-            id: pkg.id,
-            use_id_only: true,
-            status_text: `Downloaded ${progress.transferredString} / ${progress.totalString} | ${progress.speedString}/s`,
-        })
-    })
+    await downloadHttpFile(
+        step.url,
+        _path,
+        (progress) => {
+            global._relic_eventBus.emit(`pkg:update:state`, {
+                id: pkg.id,
+                use_id_only: true,
+                status_text: `Downloaded ${progress.transferredString} / ${progress.totalString} | ${progress.speedString}/s`,
+            })
+        },
+        abortController
+    )
 
     logger.info(`Downloaded finished.`)
 

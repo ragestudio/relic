@@ -106,7 +106,7 @@ const PackageOptions = (props) => {
                     app.location.push("/")
                 }
 
-                ipc.exec("pkg:install", manifest)
+                ipc.exec("pkg:reinstall", manifest.id)
             },
         })
     }

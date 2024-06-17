@@ -19,7 +19,7 @@ const StepsOrders = [
     "http_file",
 ]
 
-export default async function processGenericSteps(pkg, steps, logger = Logger) {
+export default async function processGenericSteps(pkg, steps, logger = Logger, abortController) {
     logger.info(`Processing generic steps...`)
 
     if (!Array.isArray(steps)) {
@@ -37,11 +37,15 @@ export default async function processGenericSteps(pkg, steps, logger = Logger) {
     for await (let step of steps) {
         step.type = step.type.toLowerCase()
 
+        if (abortController.signal.aborted) {
+            return false
+        }
+
         if (!InstallationStepsMethods[step.type]) {
             throw new Error(`Unknown step: ${step.type}`)
         }
 
-        await InstallationStepsMethods[step.type](pkg, step, logger)
+        await InstallationStepsMethods[step.type](pkg, step, logger, abortController)
     }
 
     return pkg

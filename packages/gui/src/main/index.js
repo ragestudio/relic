@@ -12,7 +12,7 @@ if (isDev) {
 	Settings = global.Settings = require("../../../core/dist/classes/Settings").default
 } else {
 	RelicCore = require("@ragestudio/relic-core").default
-	Settings = global.Settings = require("@ragestudio/relic-core/src/classes/Settings").default
+	Settings = global.Settings = require("@ragestudio/relic-core/dist/classes/Settings").default
 }
 
 import CoreAdapter from "./classes/CoreAdapter"

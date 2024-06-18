@@ -3,6 +3,8 @@ import Logger from "../logger"
 import os from "node:os"
 import vm from "node:vm"
 import path from "node:path"
+
+import DB from "../db"
 import ManifestConfigManager from "../classes/ManifestConfig"
 
 import resolveOs from "../utils/resolveOs"
@@ -13,10 +15,20 @@ import Settings from "../classes/Settings"
 import Vars from "../vars"
 
 async function BuildManifest(baseClass, context, { soft = false } = {}) {
-    const packagesPath = await Settings.get("packages_path") ?? Vars.packages_path
-    
-    // inject install_path
-    context.install_path = path.resolve(packagesPath, baseClass.id)
+    // try to find install_path on db
+    const pkg = await DB.getPackages(baseClass.id)
+
+    if (pkg) {
+        if (pkg.install_path) {
+            context.install_path = pkg.install_path
+        }
+    } else {
+        const packagesPath = await Settings.get("packages_path") ?? Vars.packages_path
+
+        // inject install_path
+        context.install_path = path.resolve(packagesPath, baseClass.id)
+    }
+
     baseClass.install_path = context.install_path
 
     if (soft === true) {

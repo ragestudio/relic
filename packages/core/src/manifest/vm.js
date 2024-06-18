@@ -8,11 +8,15 @@ import ManifestConfigManager from "../classes/ManifestConfig"
 import resolveOs from "../utils/resolveOs"
 import FetchLibraries from "./libraries"
 
+import Settings from "../classes/Settings"
+
 import Vars from "../vars"
 
 async function BuildManifest(baseClass, context, { soft = false } = {}) {
+    const packagesPath = await Settings.get("packages_path") ?? Vars.packages_path
+    
     // inject install_path
-    context.install_path = path.resolve(Vars.packages_path, baseClass.id)
+    context.install_path = path.resolve(packagesPath, baseClass.id)
     baseClass.install_path = context.install_path
 
     if (soft === true) {

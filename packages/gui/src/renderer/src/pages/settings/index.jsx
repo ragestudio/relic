@@ -91,31 +91,53 @@ const SettingItem = (props) => {
         return React.createElement(Component, componentProps)
     }
 
+    const Footer = () => {
+        if (typeof setting.footer === "undefined") {
+            return null
+        }
+
+        if (typeof setting.footer === "function") {
+            return setting.footer(componentProps)
+        }
+
+        return <span style={{ fontSize: "0.5rem" }}>{setting.footer}</span>
+    }
+
     return <div
         className="app_settings-list-item"
     >
-        <div className="app_settings-list-item-info">
-            <div className="app_settings-list-item-label">
-                <Icon icon={setting.icon} />
+        <div className="app_settings-list-item-row">
+            <div className="app_settings-list-item-info">
+                <div className="app_settings-list-item-label">
+                    <Icon icon={setting.icon} />
 
-                <h2>
-                    {setting.name}
-                </h2>
+                    <h2>
+                        {setting.name}
+                    </h2>
+                </div>
+
+                <div className="app_settings-list-item-description">
+                    <p>
+                        {setting.description}
+                    </p>
+                </div>
             </div>
 
-            <div className="app_settings-list-item-description">
-                <p>
-                    {setting.description}
-                </p>
+            <div className="app_settings-list-item-component">
+                {
+                    loading && <antd.Spin />
+                }
+                {
+                    !loading && <Render />
+                }
             </div>
         </div>
 
-        <div className="app_settings-list-item-component">
+        <div className="app_settings-list-item-row">
             {
-                loading && <antd.Spin />
-            }
-            {
-                !loading && <Render />
+                !loading && <div className="app_settings-list-item-footer">
+                    <Footer />
+                </div>
             }
         </div>
     </div>

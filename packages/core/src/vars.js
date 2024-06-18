@@ -1,15 +1,13 @@
 import path from "node:path"
 import upath from "upath"
+import resolveUserDataPath from "./utils/resolveUserDataPath"
 
 const isWin = process.platform.includes("win")
 const isMac = process.platform.includes("darwin")
 
 const runtimeName = "rs-relic"
 
-const userdata_path = upath.normalizeSafe(path.resolve(
-    process.env.APPDATA ||
-    (process.platform == "darwin" ? process.env.HOME + "/Library/Preferences" : process.env.HOME + "/.local/share"),
-))
+const userdata_path = resolveUserDataPath()
 const runtime_path = upath.normalizeSafe(path.join(userdata_path, runtimeName))
 const cache_path = upath.normalizeSafe(path.join(runtime_path, "cache"))
 const packages_path = upath.normalizeSafe(path.join(runtime_path, "packages"))

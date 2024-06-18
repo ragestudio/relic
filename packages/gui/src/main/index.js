@@ -1,20 +1,18 @@
-global.SettingsStore = new Store({
-	name: "settings",
-	watch: true,
-})
 import path from "node:path"
 
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
 import isDev from "electron-is-dev"
-import Store from "electron-store"
 
 let RelicCore = null
+let Settings = null
 
 if (isDev) {
-	RelicCore = require("../../../core").default
+	RelicCore = require("../../../core/dist").default
+	Settings = global.Settings = require("../../../core/dist/classes/Settings").default
 } else {
 	RelicCore = require("@ragestudio/relic-core").default
+	Settings = global.Settings = require("@ragestudio/relic-core/src/classes/Settings").default
 }
 
 import CoreAdapter from "./classes/CoreAdapter"
@@ -84,17 +82,17 @@ class ElectronApp {
 				autoUpdater.quitAndInstall()
 			}, 3000)
 		},
-		"settings:get": (event, key) => {
-			return global.SettingsStore.get(key)
+		"settings:get": async (event, key) => {
+			return await Settings.get(key)
 		},
-		"settings:set": (event, key, value) => {
-			return global.SettingsStore.set(key, value)
+		"settings:set": async (event, key, value) => {
+			return await Settings.set(key, value)
 		},
-		"settings:delete": (event, key) => {
-			return global.SettingsStore.delete(key)
+		"settings:delete": async (event, key) => {
+			return await Settings.delete(key)
 		},
-		"settings:has": (event, key) => {
-			return global.SettingsStore.has(key)
+		"settings:has": async (event, key) => {
+			return await Settings.has(key)
 		},
 		"app:open-logs": async (event) => {
 			const loggerWindow = await this.logsViewer.createWindow()

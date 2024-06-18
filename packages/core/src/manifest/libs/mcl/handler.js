@@ -1,9 +1,9 @@
-const fs = require('fs')
-const path = require('path')
-const request = require('request')
-const checksum = require('checksum')
-const Zip = require('adm-zip')
-const child = require('child_process')
+import fs from "node:fs"
+import path from "node:path"
+import child from "node:child_process"
+import request from "request"
+import checksum from "checksum"
+import Zip from "adm-zip"
 let counter = 0
 
 export default class Handler {

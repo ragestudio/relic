@@ -1,5 +1,6 @@
 import sendToRender from "../utils/sendToRender"
-import { ipcMain } from "electron"
+import { ipcMain, dialog } from "electron"
+import path from "node:path"
 
 export default class CoreAdapter {
     constructor(electronApp, RelicCore) {
@@ -48,7 +49,7 @@ export default class CoreAdapter {
             return await this.core.package.reinstall(pkg_id)
         },
         "pkg:cancel_install": async (event, pkg_id) => {
-            return await this.core.package.cancelInstall(pkg_id)  
+            return await this.core.package.cancelInstall(pkg_id)
         },
         "pkg:execute": async (event, pkg_id, { force = false } = {}) => {
             // check for updates first
@@ -76,6 +77,28 @@ export default class CoreAdapter {
         },
         "core:open-path": async (event, pkg_id) => {
             return await this.core.openPath(pkg_id)
+        },
+        "core:change-packages-path": async (event) => {
+            const { canceled, filePaths } = await dialog.showOpenDialog(undefined, {
+                properties: ["openDirectory"]
+            })
+
+            if (canceled) {
+                return false
+            }
+
+            const targetPath = path.resolve(filePaths[0], "RelicPackages")
+
+            await global.Settings.set("packages_path", targetPath)
+
+            return targetPath
+        },
+        "core:set-default-packages-path": async (event) => {
+            const { packages_path } = globalThis.relic_core.vars
+
+            await global.Settings.set("packages_path", packages_path)
+
+            return packages_path
         },
     }
 

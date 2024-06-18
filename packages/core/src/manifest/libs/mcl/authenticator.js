@@ -1,5 +1,5 @@
-const request = require('request')
-const { v3 } = require('uuid')
+import request from "request"
+import {v3} from "uuid"
 
 let uuid
 let api_url = 'https://authserver.mojang.com'

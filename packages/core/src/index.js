@@ -6,6 +6,7 @@ import open from "open"
 import SetupHelper from "./helpers/setup"
 import Logger from "./logger"
 
+import Settings from "./classes/Settings"
 import Vars from "./vars"
 import DB from "./db"
 
@@ -37,10 +38,16 @@ export default class RelicCore {
     async initialize() {
         globalThis.relic_core = {
             tasks: [],
+            vars: Vars,
         }
 
         await DB.initialize()
 
+        await Settings.initialize()
+
+        if (!await Settings.get("packages_path")) {
+            await Settings.set("packages_path", Vars.packages_path)
+        }
 
         onExit(this.onExit)
     }
@@ -71,11 +78,13 @@ export default class RelicCore {
         lastOperationRetry: PackageLastOperationRetry,
     }
 
-    openPath(pkg_id) {
+    async openPath(pkg_id) {
         if (!pkg_id) {
             return open(Vars.runtime_path)
         }
 
-        return open(Vars.packages_path + "/" + pkg_id)
+        const packagesPath = await Settings.get("packages_path") ?? Vars.packages_path
+
+        return open(packagesPath + "/" + pkg_id)
     }
 }

@@ -1,6 +1,3 @@
-import fs from "node:fs"
-import path from "node:path"
-import cliProgress from "cli-progress"
 import humanFormat from "human-format"
 import aria2 from "aria2"
 
@@ -18,6 +15,7 @@ export default async function downloadTorrent(
         onProgress,
         onDone,
         onError,
+        taskId,
     } = {}
 ) {
     let progressInterval = null
@@ -54,9 +52,17 @@ export default async function downloadTorrent(
             onStart()
         }
 
+        if (typeof taskId === "string") {
+            // TODO: Unregister me when task is cancelled or finished
+            global._relic_eventBus.once(`task:cancel:${taskId}`, () => {
+                client.call("remove", [downloadId])
+                clearInterval(progressInterval)
+                reject()
+            })
+        }
+
         progressInterval = setInterval(async () => {
             const data = await client.call("tellStatus", downloadId)
-            const isMetadata = data.totalLength === "0" && data.status === "active"
 
             console.log(data)
 

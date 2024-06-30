@@ -8,7 +8,7 @@ export default async (pkg, step, logger, abortController) => {
     if (!step.magnet) {
         throw new Error(`Magnet is required for torrent step`)
     }
-    
+
     if (typeof step.path === "undefined") {
         step.path = `.`
     }
@@ -41,7 +41,8 @@ export default async (pkg, step, logger, abortController) => {
                 use_id_only: true,
                 status_text: `Downloaded ${progress.transferredString} / ${progress.totalString} | ${progress.speedString}/s`,
             })
-        }
+        },
+        taskId: pkg.id
     })
 
 }

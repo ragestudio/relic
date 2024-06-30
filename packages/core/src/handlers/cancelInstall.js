@@ -20,6 +20,10 @@ export default async function reinstall(pkg_id) {
         if (task) {
             BaseLog.warn(`Task not found [${pkg_id}]`)
             await task.abortController.abort()
+
+            global._relic_eventBus.emit(`pkg:install:cancel`, pkg_id)
+            global._relic_eventBus.emit(`pkg:install:cancel:${pkg_id}`, pkg_id)
+            global._relic_eventBus.emit(`task:cancel:${pkg_id}`, pkg_id)
         }
 
         await UninstallHandler(pkg_id)

@@ -30,11 +30,11 @@ export default async function downloadTorrent(
     }
 
     const client = new aria2({
-        host: 'localhost',
+        host: "localhost",
         port: 6800,
         secure: false,
-        secret: '',
-        path: '/jsonrpc'
+        secret: "",
+        path: "/jsonrpc"
     })
 
     await client.open()
@@ -52,13 +52,14 @@ export default async function downloadTorrent(
             onStart()
         }
 
-        if (typeof taskId === "string") {
-            // TODO: Unregister me when task is cancelled or finished
-            global._relic_eventBus.once(`task:cancel:${taskId}`, () => {
-                client.call("remove", [downloadId])
-                clearInterval(progressInterval)
-                reject()
-            })
+        async function stopDownload() {
+            await client.call("remove", downloadId)
+            clearInterval(progressInterval)
+        }
+
+        if (taskId) {
+            // TODO: Unregister me when download finish
+            global._relic_eventBus.once(`task:cancel:${taskId}`, stopDownload)
         }
 
         progressInterval = setInterval(async () => {
@@ -104,17 +105,15 @@ export default async function downloadTorrent(
                 return false
             }
 
-            clearInterval(progressInterval)
-
             if (typeof onDone === "function") {
                 onDone()
             }
 
-            resolve({
+            stopDownload()
+
+            return resolve({
                 downloadId,
             })
-
-            return null
         })
 
         client.on("onDownloadError", ([{ gid }]) => {
@@ -122,17 +121,22 @@ export default async function downloadTorrent(
                 return false
             }
 
-            clearInterval(progressInterval)
+            stopDownload()
 
             if (typeof onError === "function") {
                 onError()
-            } else {
-                reject()
             }
+
+            return reject()
         })
     })
 
     await client.call("remove", downloadId)
+
+    if (taskId) {
+        global._relic_eventBus.off(`task:cancel:${taskId}`, stopDownload)
+    }
+
 
     return downloadId
 }

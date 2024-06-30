@@ -1,6 +1,6 @@
 {
   "name": "@ragestudio/relic-gui",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "RageStudio Relic, yet another package manager.",
   "main": "./out/main/index.js",
   "author": "RageStudio",

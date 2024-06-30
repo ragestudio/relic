@@ -69,7 +69,7 @@ export default async () => {
                 await fs.promises.mkdir(path.resolve(Vars.binaries_path, prerequisite.id), { recursive: true })
 
                 if (typeof prerequisite.url === "function") {
-                    prerequisite.url = await prerequisite.url(resolveOs(), os.arch())
+                    prerequisite.url = await prerequisite.url(os.platform(), os.arch())
                     Log.info(`Resolved url: ${prerequisite.url}`)
                 }
 

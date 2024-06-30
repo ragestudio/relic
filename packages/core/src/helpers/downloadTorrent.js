@@ -47,18 +47,17 @@ export default async function downloadTorrent(
         },
     )
 
+    async function stopDownload() {
+        await client.call("remove", downloadId)
+        clearInterval(progressInterval)
+    }
+
     await new Promise(async (resolve, reject) => {
         if (typeof onStart === "function") {
             onStart()
         }
 
-        async function stopDownload() {
-            await client.call("remove", downloadId)
-            clearInterval(progressInterval)
-        }
-
         if (taskId) {
-            // TODO: Unregister me when download finish
             global._relic_eventBus.once(`task:cancel:${taskId}`, stopDownload)
         }
 
@@ -136,7 +135,6 @@ export default async function downloadTorrent(
     if (taskId) {
         global._relic_eventBus.off(`task:cancel:${taskId}`, stopDownload)
     }
-
 
     return downloadId
 }

@@ -1,6 +1,6 @@
 {
   "name": "@ragestudio/relic-gui",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "description": "RageStudio Relic, yet another package manager.",
   "main": "./out/main/index.js",
   "author": "RageStudio",
@@ -24,7 +24,7 @@
     "@getstation/electron-google-oauth2": "^14.0.0",
     "@imjs/electron-differential-updater": "^5.1.7",
     "@loadable/component": "^5.16.3",
-    "@ragestudio/relic-core": "^0.19.1",
+    "@ragestudio/relic-core": "^0.20.2",
     "antd": "^5.13.2",
     "classnames": "^2.3.2",
     "electron-differential-updater": "^4.3.2",

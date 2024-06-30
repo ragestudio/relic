@@ -1,6 +1,6 @@
 {
   "name": "@ragestudio/relic-core",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "license": "MIT",
   "author": "RageStudio",
   "description": "RageStudio Relic, yet another package manager.",

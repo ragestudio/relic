@@ -36,4 +36,36 @@ export default class SecureFileSystem {
     existsSync(...args) {
         return fs.existsSync(...args)
     }
+
+    async rename(from, to) {
+        this.checkOutsideJail(from)
+        this.checkOutsideJail(to)
+
+        return await fs.promises.rename(from, to)
+    }
+
+    async writeFile(path, data, options) {
+        this.checkOutsideJail(path)
+        return await fs.promises.writeFile(path, data, options)
+    }
+
+    async readDir(path) {
+        this.checkOutsideJail(path)
+        return await fs.promises.readdir(path)
+    }
+
+    async rm(path, options) {
+        this.checkOutsideJail(path)
+        return await fs.promises.rm(path, options)
+    }
+
+    async mkdir(path, options) {
+        this.checkOutsideJail(path)
+        return await fs.promises.mkdir(path, options)
+    }
+
+    async stat(path) {
+        this.checkOutsideJail(path)
+        return await fs.promises.stat(path)
+    }
 }

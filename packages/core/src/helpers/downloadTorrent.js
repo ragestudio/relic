@@ -2,6 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import cliProgress from "cli-progress"
 import humanFormat from "human-format"
+import aria2 from "aria2"
 
 function convertSize(size) {
     return `${humanFormat(size, {
@@ -30,64 +31,102 @@ export default async function downloadTorrent(
         speedString: "0B/s",
     }
 
-    const client = new WebTorrent()
+    const client = new aria2({
+        host: 'localhost',
+        port: 6800,
+        secure: false,
+        secret: '',
+        path: '/jsonrpc'
+    })
 
-    await new Promise((resolve, reject) => {
-        client.add(magnet, (torrentInstance) => {
-            const progressBar = new cliProgress.SingleBar({
-                format: "[{bar}] {percentage}% | {total_formatted} | {speed}/s | {eta_formatted}",
-                barCompleteChar: "\u2588",
-                barIncompleteChar: "\u2591",
-                hideCursor: true
-            }, cliProgress.Presets.shades_classic)
+    await client.open()
 
-            if (typeof onStart === "function") {
-                onStart(torrentInstance)
+    let downloadId = await client.call(
+        "addUri",
+        [magnet],
+        {
+            dir: destination,
+        },
+    )
+
+    await new Promise(async (resolve, reject) => {
+        if (typeof onStart === "function") {
+            onStart()
+        }
+
+        progressInterval = setInterval(async () => {
+            const data = await client.call("tellStatus", downloadId)
+            const isMetadata = data.totalLength === "0" && data.status === "active"
+
+            console.log(data)
+
+            if (data.status === "complete") {
+                if (Array.isArray(data.followedBy) && data.followedBy[0]) {
+                    // replace downloadId
+                    downloadId = data.followedBy[0]
+                }
             }
 
-            progressBar.start(tickProgress.total, 0, {
-                speed: "0B/s",
-                total_formatted: tickProgress.totalString,
+            tickProgress.total = parseInt(data.totalLength)
+            tickProgress.speed = parseInt(data.downloadSpeed)
+            tickProgress.transferred = parseInt(data.completedLength)
+            tickProgress.connections = data.connections
+
+            tickProgress.transferredString = convertSize(tickProgress.transferred)
+            tickProgress.totalString = convertSize(tickProgress.total)
+            tickProgress.speedString = convertSize(tickProgress.speed)
+
+            if (typeof onProgress === "function") {
+                onProgress(tickProgress)
+            }
+        }, 1000)
+
+        client.on("onDownloadStart", async ([{ gid }]) => {
+            const data = await client.call("tellStatus", gid)
+
+            console.log(data)
+
+            if (typeof data.following !== "undefined") {
+                if (data.following === downloadId) {
+                    downloadId = data.gid
+                }
+            }
+        })
+
+        client.on("onBtDownloadComplete", ([{ gid }]) => {
+            if (gid !== downloadId) {
+                return false
+            }
+
+            clearInterval(progressInterval)
+
+            if (typeof onDone === "function") {
+                onDone()
+            }
+
+            resolve({
+                downloadId,
             })
 
-            torrentInstance.on("done", () => {
-                progressBar.stop()
-                clearInterval(progressInterval)
+            return null
+        })
 
-                if (typeof onDone === "function") {
-                    onDone(torrentInstance)
-                }
+        client.on("onDownloadError", ([{ gid }]) => {
+            if (gid !== downloadId) {
+                return false
+            }
 
-                resolve(torrentInstance)
-            })
+            clearInterval(progressInterval)
 
-            torrentInstance.on("error", (error) => {
-                progressBar.stop()
-                clearInterval(progressInterval)
-
-                if (typeof onError === "function") {
-                    onError(error)
-                } else {
-                    reject(error)
-                }
-            })
-
-            progressInterval = setInterval(() => {
-                tickProgress.speed = torrentInstance.downloadSpeed
-                tickProgress.transferred = torrentInstance.downloaded
-
-                tickProgress.transferredString = convertSize(tickProgress.transferred)
-                tickProgress.totalString = convertSize(tickProgress.total)
-                tickProgress.speedString = convertSize(tickProgress.speed)
-
-                if (typeof onProgress === "function") {
-                    onProgress(tickProgress)
-                }
-
-                progressBar.update(tickProgress.transferred, {
-                    speed: tickProgress.speedString,
-                })
-            }, 1000)
+            if (typeof onError === "function") {
+                onError()
+            } else {
+                reject()
+            }
         })
     })
+
+    await client.call("remove", downloadId)
+
+    return downloadId
 }

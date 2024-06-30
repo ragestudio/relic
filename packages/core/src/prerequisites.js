@@ -9,9 +9,11 @@ export default [
     {
         id: "7z-bin",
         finalBin: Vars.sevenzip_bin,
-        url: resolveRemoteBinPath(`${baseURL}/7zip-bin`, process.platform === "win32" ? "7za.exe" : "7za"),
-        destination: Vars.sevenzip_bin,
+        url: resolveRemoteBinPath(`${baseURL}/7z-full`, "7z.zip"),
+        destination: path.resolve(Vars.binaries_path, "7z.zip"),
+        extract: path.resolve(Vars.binaries_path, "7z-bin"),
         rewriteExecutionPermission: true,
+        deleteBeforeExtract: true,
     },
     {
         id: "git-bin",
@@ -24,14 +26,13 @@ export default [
         deleteBeforeExtract: true,
     },
     {
-        id: "rclone-bin",
-        finalBin: Vars.rclone_bin,
-        url: resolveRemoteBinPath(`${baseURL}/rclone`, "rclone-bin.zip"),
-        destination: path.resolve(Vars.binaries_path, "rclone-bin.zip"),
-        extract: path.resolve(Vars.binaries_path, "rclone-bin"),
-        requireOs: ["win32"],
-        rewriteExecutionPermission: true,
-        deleteBeforeExtract: true,
+        id: "aria2",
+        finalBin: Vars.aria2_bin,
+        url: async (os, arch) => {
+            return `https://storage.ragestudio.net/rstudio/binaries/aria2/${os}/${arch}/${os === "win32" ? "aria2c.exe" : "aria2c"}`
+        },
+        destination: Vars.aria2_bin,
+        rewriteExecutionPermission: Vars.aria2_bin,
     },
     {
         id: "java22_jre_bin",

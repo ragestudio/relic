@@ -2,6 +2,7 @@ import Open from "./open"
 import Path from "./path"
 import Fs from "./fs"
 import Auth from "./auth"
+import Extract from "./extract"
 
 // Third party libraries
 import Mcl from "./mcl"
@@ -11,5 +12,6 @@ export default {
     path: Path,
     open: Open,
     auth: Auth,
-    mcl: Mcl
+    extract: Extract,
+    mcl: Mcl,
 }

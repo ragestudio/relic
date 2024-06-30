@@ -10,7 +10,7 @@ import Apply from "../handlers/apply"
 
 const BaseLog = Logger.child({ service: "INSTALLER" })
 
-export default async function install(manifest) {
+export default async function install(manifest, options = {}) {
     let id = null
     let abortController = new AbortController()
 
@@ -111,8 +111,8 @@ export default async function install(manifest) {
         if (abortController.signal.aborted) {
             return false
         }
-        
-        if (Array.isArray(manifest.installSteps)) {
+
+        if (Array.isArray(manifest.installSteps) && !options.noInstallSteps) {
             Log.info(`Executing generic install steps...`)
 
             global._relic_eventBus.emit(`pkg:update:state`, {

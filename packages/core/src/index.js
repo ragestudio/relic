@@ -4,6 +4,7 @@ import { onExit } from "signal-exit"
 import open from "open"
 
 import SetupHelper from "./helpers/setup"
+import { execa } from "./libraries/execa"
 import Logger from "./logger"
 
 import Settings from "./classes/Settings"
@@ -49,12 +50,25 @@ export default class RelicCore {
             await Settings.set("packages_path", Vars.packages_path)
         }
 
+        this.aria2c_instance = execa(
+            Vars.aria2_bin,
+            ["--enable-rpc", "--rpc-listen-all=true", "--rpc-allow-origin-all", "--file-allocation=none"],
+            {
+                stdout: "inherit",
+                stderr: "inherit",
+            }
+        )
+
         onExit(this.onExit)
     }
 
     onExit = () => {
         if (fs.existsSync(Vars.cache_path)) {
             fs.rmSync(Vars.cache_path, { recursive: true, force: true })
+        }
+
+        if (this.aria2c_instance) {
+            this.aria2c_instance.kill("SIGINT")
         }
     }
 

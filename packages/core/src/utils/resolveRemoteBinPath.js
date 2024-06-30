@@ -2,10 +2,10 @@ export default (pre, post) => {
     let url = null
 
     if (process.platform === "darwin") {
-        url = `${pre}/mac/${process.arch}/${post}`
+        url = `${pre}/darwin/${process.arch}/${post}`
     }
     else if (process.platform === "win32") {
-        url = `${pre}/win/${process.arch}/${post}`
+        url = `${pre}/win32/${process.arch}/${post}`
     }
     else {
         url = `${pre}/linux/${process.arch}/${post}`

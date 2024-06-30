@@ -1,10 +1,13 @@
 import path from "node:path"
+import fs from "node:fs"
 
 import parseStringVars from "../utils/parseStringVars"
-//import downloadTorrent from "../helpers/downloadTorrent"
+import downloadTorrent from "../helpers/downloadTorrent"
 
 export default async (pkg, step, logger, abortController) => {
-    throw new Error("Not implemented")
+    if (!step.magnet) {
+        throw new Error(`Magnet is required for torrent step`)
+    }
     
     if (typeof step.path === "undefined") {
         step.path = `.`

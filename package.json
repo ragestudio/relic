@@ -1,9 +1,5 @@
 {
   "name": "@ragestudio/relic-core",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "repository": "https://github.com/srgooglo/rs_bundler",
   "author": "SrGooglo <srgooglo@ragestudio.net>",
   "license": "MIT",

@@ -44,7 +44,7 @@ export default [
                 params: {
                     arch: arch,
                     java_version: "22",
-                    os: os,
+                    os: os === "win32" ? "windows" : os,
                     archive_type: "zip",
                     javafx_bundled: "false",
                     java_package_type: "jre",
@@ -78,7 +78,7 @@ export default [
                 params: {
                     arch: arch,
                     java_version: "17",
-                    os: os,
+                    os: os === "win32" ? "windows" : os,
                     archive_type: "zip",
                     javafx_bundled: "false",
                     java_package_type: "jre",

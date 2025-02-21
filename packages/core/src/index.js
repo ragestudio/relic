@@ -26,79 +26,91 @@ import PackageCheckUpdate from "./handlers/checkUpdate"
 import PackageLastOperationRetry from "./handlers/lastOperationRetry"
 
 export default class RelicCore {
-    constructor(params) {
-        this.params = params
-    }
+	constructor(params) {
+		this.params = params
+	}
 
-    eventBus = global._relic_eventBus = new EventEmitter()
+	eventBus = (global._relic_eventBus = new EventEmitter())
 
-    logger = Logger
+	logger = Logger
 
-    db = DB
+	db = DB
 
-    async initialize() {
-        globalThis.relic_core = {
-            tasks: [],
-            vars: Vars,
-        }
+	async initialize() {
+		globalThis.relic_core = {
+			tasks: [],
+			vars: Vars,
+		}
 
-        await DB.initialize()
+		console.log(`Checking runtime_path >`, Vars.runtime_path)
 
-        await Settings.initialize()
+		if (!fs.existsSync(Vars.runtime_path)) {
+			fs.mkdirSync(Vars.runtime_path, { recursive: true })
+		}
 
-        if (!await Settings.get("packages_path")) {
-            await Settings.set("packages_path", Vars.packages_path)
-        }
+		await DB.initialize()
 
-        this.aria2c_instance = execa(
-            Vars.aria2_bin,
-            ["--enable-rpc", "--rpc-listen-all=true", "--rpc-allow-origin-all", "--file-allocation=none"],
-            {
-                stdout: "inherit",
-                stderr: "inherit",
-            }
-        )
+		await Settings.initialize()
 
-        onExit(this.onExit)
-    }
+		if (!(await Settings.get("packages_path"))) {
+			await Settings.set("packages_path", Vars.packages_path)
+		}
 
-    onExit = () => {
-        if (fs.existsSync(Vars.cache_path)) {
-            fs.rmSync(Vars.cache_path, { recursive: true, force: true })
-        }
+		this.aria2c_instance = execa(
+			Vars.aria2_bin,
+			[
+				"--enable-rpc",
+				"--rpc-listen-all=true",
+				"--rpc-allow-origin-all",
+				"--file-allocation=none",
+			],
+			{
+				stdout: "inherit",
+				stderr: "inherit",
+			},
+		)
 
-        if (this.aria2c_instance) {
-            this.aria2c_instance.kill("SIGINT")
-        }
-    }
+		onExit(this.onExit)
+	}
 
-    async setup() {
-        return await SetupHelper()
-    }
+	onExit = () => {
+		if (fs.existsSync(Vars.cache_path)) {
+			fs.rmSync(Vars.cache_path, { recursive: true, force: true })
+		}
 
-    package = {
-        install: PackageInstall,
-        execute: PackageExecute,
-        uninstall: PackageUninstall,
-        reinstall: PackageReinstall,
-        cancelInstall: PackageCancelInstall,
-        update: PackageUpdate,
-        apply: PackageApply,
-        list: PackageList,
-        read: PackageRead,
-        authorize: PackageAuthorize,
-        deauthorize: PackageDeauthorize,
-        checkUpdate: PackageCheckUpdate,
-        lastOperationRetry: PackageLastOperationRetry,
-    }
+		if (this.aria2c_instance) {
+			this.aria2c_instance.kill("SIGINT")
+		}
+	}
 
-    async openPath(pkg_id) {
-        if (!pkg_id) {
-            return open(Vars.runtime_path)
-        }
+	async setup() {
+		return await SetupHelper()
+	}
 
-        const packagesPath = await Settings.get("packages_path") ?? Vars.packages_path
+	package = {
+		install: PackageInstall,
+		execute: PackageExecute,
+		uninstall: PackageUninstall,
+		reinstall: PackageReinstall,
+		cancelInstall: PackageCancelInstall,
+		update: PackageUpdate,
+		apply: PackageApply,
+		list: PackageList,
+		read: PackageRead,
+		authorize: PackageAuthorize,
+		deauthorize: PackageDeauthorize,
+		checkUpdate: PackageCheckUpdate,
+		lastOperationRetry: PackageLastOperationRetry,
+	}
 
-        return open(packagesPath + "/" + pkg_id)
-    }
+	async openPath(pkg_id) {
+		if (!pkg_id) {
+			return open(Vars.runtime_path)
+		}
+
+		const packagesPath =
+			(await Settings.get("packages_path")) ?? Vars.packages_path
+
+		return open(packagesPath + "/" + pkg_id)
+	}
 }

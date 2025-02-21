@@ -26,10 +26,10 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: ragestudio.net
   category: Utility
+  icon: resources/icon.png
 appImage:
   artifactName: ${productName}-${version}.${ext}
 npmRebuild: false
